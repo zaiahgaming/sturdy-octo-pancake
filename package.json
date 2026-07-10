@@ -1,0 +1,26 @@
+{
+  "name": "app",
+  "version": "1.0.0",
+  "description": "Game Dev Challenge Build a fully working game. Any game. Pick your poison.",
+  "main": "game.js",
+  "scripts": {
+    "test": "mocha tests/**/*.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/zaiahgaming/sturdy-octo-pancake.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/zaiahgaming/sturdy-octo-pancake/issues"
+  },
+  "homepage": "https://github.com/zaiahgaming/sturdy-octo-pancake#readme",
+  "devDependencies": {
+    "chai": "^6.2.2",
+    "jsdom": "^29.1.1",
+    "mocha": "^11.7.6"
+  }
+}
