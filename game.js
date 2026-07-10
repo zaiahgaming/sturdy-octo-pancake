@@ -1,12 +1,23 @@
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 
-canvas.width = 800;
-canvas.height = 600;
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+
+window.addEventListener('resize', () => {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+});
+
 
 let animationId;
 let gameActive = false;
 let score = 0;
+
+
+// Virtual Joystick state
+const joystickLeft = { active: false, id: null, originX: 0, originY: 0, x: 0, y: 0 };
+const joystickRight = { active: false, id: null, originX: 0, originY: 0, x: 0, y: 0 };
 
 // Input state
 const keys = {
@@ -96,6 +107,8 @@ function animate() {
         }
     });
 
+    drawJoysticks();
+
     // Update enemies
     enemies.forEach((enemy, enemyIndex) => {
         enemy.update();
@@ -154,6 +167,18 @@ function gameOver() {
 
 
 // Event Listeners
+
+const fullscreenBtn = document.getElementById('fullscreen-btn');
+fullscreenBtn.addEventListener('click', () => {
+    if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(err => {
+            console.log(`Error attempting to enable fullscreen: ${err.message}`);
+        });
+    } else {
+        document.exitFullscreen();
+    }
+});
+
 window.addEventListener('keydown', (e) => {
     if (keys.hasOwnProperty(e.key.toLowerCase())) {
         keys[e.key.toLowerCase()] = true;
@@ -174,6 +199,64 @@ canvas.addEventListener('mousemove', (e) => {
 
 canvas.addEventListener('mousedown', () => mouse.isDown = true);
 canvas.addEventListener('mouseup', () => mouse.isDown = false);
+
+canvas.addEventListener('touchstart', (e) => {
+    e.preventDefault();
+    for (let i = 0; i < e.changedTouches.length; i++) {
+        const touch = e.changedTouches[i];
+        if (touch.clientX < window.innerWidth / 2) {
+            // Left half of screen
+            joystickLeft.active = true;
+            joystickLeft.id = touch.identifier;
+            joystickLeft.originX = touch.clientX;
+            joystickLeft.originY = touch.clientY;
+            joystickLeft.x = touch.clientX;
+            joystickLeft.y = touch.clientY;
+        } else {
+            // Right half of screen
+            joystickRight.active = true;
+            joystickRight.id = touch.identifier;
+            joystickRight.originX = touch.clientX;
+            joystickRight.originY = touch.clientY;
+            joystickRight.x = touch.clientX;
+            joystickRight.y = touch.clientY;
+        }
+    }
+}, {passive: false});
+
+canvas.addEventListener('touchmove', (e) => {
+    e.preventDefault();
+    for (let i = 0; i < e.changedTouches.length; i++) {
+        const touch = e.changedTouches[i];
+        if (joystickLeft.active && touch.identifier === joystickLeft.id) {
+            joystickLeft.x = touch.clientX;
+            joystickLeft.y = touch.clientY;
+        }
+        if (joystickRight.active && touch.identifier === joystickRight.id) {
+            joystickRight.x = touch.clientX;
+            joystickRight.y = touch.clientY;
+        }
+    }
+}, {passive: false});
+
+function handleTouchEnd(e) {
+    e.preventDefault();
+    for (let i = 0; i < e.changedTouches.length; i++) {
+        const touch = e.changedTouches[i];
+        if (joystickLeft.active && touch.identifier === joystickLeft.id) {
+            joystickLeft.active = false;
+            joystickLeft.id = null;
+        }
+        if (joystickRight.active && touch.identifier === joystickRight.id) {
+            joystickRight.active = false;
+            joystickRight.id = null;
+        }
+    }
+}
+
+canvas.addEventListener('touchend', handleTouchEnd, {passive: false});
+canvas.addEventListener('touchcancel', handleTouchEnd, {passive: false});
+
 
 document.getElementById('start-btn').addEventListener('click', () => {
     document.getElementById('start-screen').style.display = 'none';
@@ -211,9 +294,19 @@ class Player {
         ctx.closePath();
         ctx.shadowBlur = 0; // Reset shadow for other elements
 
+
         // Draw aim indicator
         ctx.beginPath();
-        const angle = Math.atan2(mouse.y - this.y, mouse.x - this.x);
+        let angle = Math.atan2(mouse.y - this.y, mouse.x - this.x);
+
+        if (joystickRight.active) {
+            const dx = joystickRight.x - joystickRight.originX;
+            const dy = joystickRight.y - joystickRight.originY;
+            if (Math.hypot(dx, dy) > 10) {
+                 angle = Math.atan2(dy, dx);
+            }
+        }
+
         const endX = this.x + Math.cos(angle) * (this.radius + 10);
         const endY = this.y + Math.sin(angle) * (this.radius + 10);
         ctx.moveTo(this.x, this.y);
@@ -225,6 +318,25 @@ class Player {
     }
 
     update() {
+
+        // Joystick movement logic
+        if (joystickLeft.active) {
+            const dx = joystickLeft.x - joystickLeft.originX;
+            const dy = joystickLeft.y - joystickLeft.originY;
+            const maxRadius = 50;
+            const dist = Math.hypot(dx, dy);
+
+            // normalized vector
+            let nx = dx / dist;
+            let ny = dy / dist;
+            if (dist === 0) { nx = 0; ny = 0; }
+
+            const strength = Math.min(dist / maxRadius, 1);
+
+            this.velocity.x += nx * this.speed * strength * 2; // multiply by 2 for snappier mobile feel
+            this.velocity.y += ny * this.speed * strength * 2;
+        }
+
         // Movement logic
         if (keys.w) this.velocity.y -= this.speed;
         if (keys.s) this.velocity.y += this.speed;
@@ -300,11 +412,29 @@ class Projectile {
 let lastShotTime = 0;
 const fireRate = 150; // ms
 
+
 function handleShooting() {
+    let shouldShoot = false;
+    let angle = 0;
+
     if (mouse.isDown) {
+        shouldShoot = true;
+        angle = Math.atan2(mouse.y - player.y, mouse.x - player.x);
+    } else if (joystickRight.active) {
+        const dx = joystickRight.x - joystickRight.originX;
+        const dy = joystickRight.y - joystickRight.originY;
+        const dist = Math.hypot(dx, dy);
+
+        // Only shoot if pulled far enough
+        if (dist > 10) {
+            shouldShoot = true;
+            angle = Math.atan2(dy, dx);
+        }
+    }
+
+    if (shouldShoot) {
         const currentTime = Date.now();
         if (currentTime - lastShotTime > fireRate) {
-            const angle = Math.atan2(mouse.y - player.y, mouse.x - player.x);
             const speed = 10;
             const velocity = {
                 x: Math.cos(angle) * speed,
@@ -323,6 +453,7 @@ function handleShooting() {
         }
     }
 }
+
 
 class Enemy {
     constructor(x, y, radius, color, speed, type) {
@@ -397,6 +528,67 @@ class Enemy {
 }
 
 let enemySpawnInterval;
+
+
+function drawJoysticks() {
+    ctx.lineWidth = 2;
+
+    if (joystickLeft.active) {
+        // Base
+        ctx.beginPath();
+        ctx.arc(joystickLeft.originX, joystickLeft.originY, 50, 0, Math.PI*2);
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+        ctx.stroke();
+
+        // Stick
+        ctx.beginPath();
+
+        const dx = joystickLeft.x - joystickLeft.originX;
+        const dy = joystickLeft.y - joystickLeft.originY;
+        const dist = Math.hypot(dx, dy);
+        const maxRadius = 50;
+
+        let drawX = joystickLeft.x;
+        let drawY = joystickLeft.y;
+
+        if (dist > maxRadius) {
+            drawX = joystickLeft.originX + (dx/dist) * maxRadius;
+            drawY = joystickLeft.originY + (dy/dist) * maxRadius;
+        }
+
+        ctx.arc(drawX, drawY, 25, 0, Math.PI*2);
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
+        ctx.fill();
+    }
+
+    if (joystickRight.active) {
+        // Base
+        ctx.beginPath();
+        ctx.arc(joystickRight.originX, joystickRight.originY, 50, 0, Math.PI*2);
+        ctx.strokeStyle = 'rgba(0, 255, 255, 0.3)';
+        ctx.stroke();
+
+        // Stick
+        ctx.beginPath();
+
+        const dx = joystickRight.x - joystickRight.originX;
+        const dy = joystickRight.y - joystickRight.originY;
+        const dist = Math.hypot(dx, dy);
+        const maxRadius = 50;
+
+        let drawX = joystickRight.x;
+        let drawY = joystickRight.y;
+
+        if (dist > maxRadius) {
+            drawX = joystickRight.originX + (dx/dist) * maxRadius;
+            drawY = joystickRight.originY + (dy/dist) * maxRadius;
+        }
+
+        ctx.arc(drawX, drawY, 25, 0, Math.PI*2);
+        ctx.fillStyle = 'rgba(0, 255, 255, 0.5)';
+        ctx.fill();
+    }
+}
 
 function spawnEnemies() {
     // Clear any existing interval

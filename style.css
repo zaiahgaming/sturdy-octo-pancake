@@ -13,12 +13,13 @@ body {
 
 #game-container {
     position: relative;
+    width: 100%;
+    height: 100%;
 }
 
 canvas {
     display: block;
-    box-shadow: 0 0 20px rgba(0, 255, 255, 0.2);
-    border: 2px solid rgba(255, 255, 255, 0.1);
+    border: none;
 }
 
 #ui-layer {
@@ -58,6 +59,13 @@ h1 {
     color: #f0f;
     text-shadow: 0 0 10px #f0f;
     margin-top: 0;
+}
+
+#fullscreen-btn {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    pointer-events: auto;
 }
 
 button {
