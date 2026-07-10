@@ -1,0 +1,5 @@
+🔒 Fix Object.prototype.hasOwnProperty vulnerability
+
+🎯 **What:** The vulnerability fixed is the direct use of `hasOwnProperty` on the `keys` object in `game.js`.
+⚠️ **Risk:** The potential impact if left unfixed is prototype pollution or object property overriding where an attacker or erroneous code might set a `hasOwnProperty` key, leading to the application crashing or behaving unexpectedly when processing keyboard events.
+🛡️ **Solution:** The fix replaces direct calls to `keys.hasOwnProperty(key)` with the safer alternative `Object.prototype.hasOwnProperty.call(keys, key)`.
