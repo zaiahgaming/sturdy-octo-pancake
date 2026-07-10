@@ -118,6 +118,49 @@ let particles = [];
 let enemyProjectiles = [];
 let powerups = [];
 
+
+const glowCache = {};
+
+function getGlowSprite(radius, fillColor, shadowColor, blur, type = 'circle') {
+    const key = `${radius}_${fillColor}_${shadowColor}_${blur}_${type}`;
+    if (glowCache[key]) return glowCache[key];
+
+    const padding = blur * 2;
+    const size = (radius + padding) * 2;
+
+    const offscreen = document.createElement('canvas');
+    offscreen.width = size;
+    offscreen.height = size;
+    const ctx = offscreen.getContext('2d');
+
+    const center = size / 2;
+
+    ctx.shadowColor = shadowColor;
+    ctx.shadowBlur = blur;
+    ctx.fillStyle = fillColor;
+
+    ctx.beginPath();
+    if (type === 'circle') {
+        ctx.arc(center, center, radius, 0, Math.PI * 2, false);
+    } else if (type === 'square') {
+        ctx.rect(center - radius, center - radius, radius * 2, radius * 2);
+    } else if (type === 'triangle') {
+        ctx.moveTo(center, center - radius);
+        ctx.lineTo(center + radius, center + radius);
+        ctx.lineTo(center - radius, center + radius);
+    }
+    ctx.closePath();
+    ctx.fill();
+    ctx.shadowBlur = 0;
+
+    glowCache[key] = {
+        canvas: offscreen,
+        offset: center
+    };
+
+    return glowCache[key];
+}
+
 const powerupTypes = [
     { type: 'spread', color: '#ff0', text: 'Spread Shot' },
     { type: 'rapid', color: '#0f0', text: 'Rapid Fire' },
@@ -144,15 +187,19 @@ class Powerup {
     draw() {
         this.pulse += 0.1;
         const currentRadius = this.radius + Math.sin(this.pulse) * 2;
+        // Since currentRadius changes, we cache the base radius and scale it during draw
+        const sprite = getGlowSprite(this.radius, this.color, this.color, 20, 'circle');
 
-        ctx.beginPath();
-        ctx.arc(this.x, this.y, currentRadius, 0, Math.PI * 2);
-        ctx.fillStyle = this.color;
-        ctx.shadowColor = this.color;
-        ctx.shadowBlur = 20;
-        ctx.fill();
-        ctx.closePath();
-        ctx.shadowBlur = 0;
+        const scale = currentRadius / this.radius;
+        const scaledOffset = sprite.offset * scale;
+
+        ctx.drawImage(
+            sprite.canvas,
+            this.x - scaledOffset,
+            this.y - scaledOffset,
+            sprite.canvas.width * scale,
+            sprite.canvas.height * scale
+        );
 
         ctx.fillStyle = '#fff';
         ctx.font = '10px Arial';
@@ -601,14 +648,11 @@ class Player {
     }
 
     draw() {
-        ctx.beginPath();
-        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2, false);
-        ctx.fillStyle = this.color;
-        ctx.shadowColor = '#0ff';
-        ctx.shadowBlur = 15;
-        ctx.fill();
-        ctx.closePath();
-        ctx.shadowBlur = 0; // Reset shadow for other elements
+        const sprite = getGlowSprite(this.radius, this.color, '#0ff', 15, 'circle');
+        ctx.drawImage(sprite.canvas, this.x - sprite.offset, this.y - sprite.offset);
+
+        // Reset shadow not needed anymore
+
 
 
         // Draw aim indicator
@@ -741,14 +785,8 @@ class Projectile {
     }
 
     draw() {
-        ctx.beginPath();
-        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2, false);
-        ctx.fillStyle = this.color;
-        ctx.shadowColor = this.color;
-        ctx.shadowBlur = 10;
-        ctx.fill();
-        ctx.closePath();
-        ctx.shadowBlur = 0;
+        const sprite = getGlowSprite(this.radius, this.color, this.color, 10, 'circle');
+        ctx.drawImage(sprite.canvas, this.x - sprite.offset, this.y - sprite.offset);
     }
 
     update() {
@@ -828,36 +866,17 @@ class Enemy {
     }
 
     draw() {
-        ctx.beginPath();
-        if (this.type === 'shooter') {
-            // Draw square for shooter
-            ctx.rect(this.x - this.radius, this.y - this.radius, this.radius * 2, this.radius * 2);
-        } else if (this.type === 'bomber') {
-            // Draw triangle for bomber
-            ctx.moveTo(this.x, this.y - this.radius);
-            ctx.lineTo(this.x + this.radius, this.y + this.radius);
-            ctx.lineTo(this.x - this.radius, this.y + this.radius);
-            ctx.closePath();
+        let shapeType = 'circle';
+        if (this.type === 'shooter') shapeType = 'square';
+        else if (this.type === 'bomber') shapeType = 'triangle';
 
-            // Flash color
-            if (Date.now() % 200 < 100) {
-                ctx.fillStyle = '#fff';
-            } else {
-                ctx.fillStyle = this.color;
-            }
-        } else {
-            // Draw circle for chaser
-            ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2, false);
+        let currentColor = this.color;
+        if (this.type === 'bomber' && Date.now() % 200 < 100) {
+            currentColor = '#fff';
         }
 
-        if (this.type !== 'bomber' || Date.now() % 200 >= 100) {
-            ctx.fillStyle = this.color;
-        }
-        ctx.shadowColor = this.color;
-        ctx.shadowBlur = 10;
-        ctx.fill();
-        ctx.closePath();
-        ctx.shadowBlur = 0;
+        const sprite = getGlowSprite(this.radius, currentColor, this.color, 10, shapeType);
+        ctx.drawImage(sprite.canvas, this.x - sprite.offset, this.y - sprite.offset);
     }
 
     update() {
