@@ -3,29 +3,95 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Neon Survivor</title>
+    <title>Neon Games Launcher</title>
     <link rel="stylesheet" href="style.css">
+    <style>
+        #launcher-menu {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            align-items: center;
+        }
+
+        #launcher-menu a {
+            text-decoration: none;
+        }
+
+        #launcher-menu button {
+            width: 300px;
+            font-size: 24px;
+            padding: 20px;
+        }
+
+        .title {
+            margin-bottom: 40px;
+        }
+    </style>
 </head>
 <body>
     <div id="game-container">
-        <canvas id="gameCanvas"></canvas>
-        <div id="ui-layer">
-            <div id="score">Score: 0</div>
-            <button id="fullscreen-btn">Fullscreen</button>
-            <div id="active-powerups"></div>
-
-            <div id="game-over" style="display: none;">
-                <h1>GAME OVER</h1>
-                <p>Score: <span id="final-score">0</span></p>
-                <button id="restart-btn">Restart</button>
-            </div>
-            <div id="start-screen">
-                <h1>NEON SURVIVOR</h1>
-                <p>WASD to Move | Mouse to Aim | Left Click to Shoot</p>
-                <button id="start-btn">Start Game</button>
+        <!-- We use a canvas for the background effect to keep the vibe -->
+        <canvas id="bgCanvas"></canvas>
+        <div id="ui-layer" style="pointer-events: auto;">
+            <div id="start-screen" style="display: block;">
+                <h1 class="title">NEON ARCADE</h1>
+                <div id="launcher-menu">
+                    <a href="game1.html"><button>Neon Survivor</button></a>
+                    <a href="game2.html"><button>Neon Snake</button></a>
+                </div>
             </div>
         </div>
     </div>
-    <script src="game.js"></script>
+
+    <script>
+        const canvas = document.getElementById('bgCanvas');
+        const ctx = canvas.getContext('2d');
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        // Simple background effect matching the neon vibe
+        const particles = [];
+        for (let i = 0; i < 50; i++) {
+            particles.push({
+                x: Math.random() * canvas.width,
+                y: Math.random() * canvas.height,
+                vx: (Math.random() - 0.5) * 2,
+                vy: (Math.random() - 0.5) * 2,
+                color: Math.random() > 0.5 ? '#0ff' : '#f0f',
+                size: Math.random() * 3 + 1
+            });
+        }
+
+        function drawBg() {
+            ctx.fillStyle = '#111';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            particles.forEach(p => {
+                p.x += p.vx;
+                p.y += p.vy;
+
+                if (p.x < 0 || p.x > canvas.width) p.vx *= -1;
+                if (p.y < 0 || p.y > canvas.height) p.vy *= -1;
+
+                ctx.fillStyle = p.color;
+                ctx.shadowBlur = 10;
+                ctx.shadowColor = p.color;
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                ctx.fill();
+            });
+            ctx.shadowBlur = 0;
+
+            requestAnimationFrame(drawBg);
+        }
+
+        drawBg();
+    </script>
 </body>
 </html>
