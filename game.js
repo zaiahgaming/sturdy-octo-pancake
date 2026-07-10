@@ -460,6 +460,7 @@ function gameOver() {
     setTimeout(() => {
         document.getElementById('game-over').style.display = 'block';
         document.getElementById('final-score').innerText = score;
+        document.getElementById('restart-btn').focus();
     }, 500);
 }
 

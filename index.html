@@ -8,13 +8,13 @@
 </head>
 <body>
     <div id="game-container">
-        <canvas id="gameCanvas"></canvas>
+        <canvas id="gameCanvas" aria-label="Game Canvas" role="img"></canvas>
         <div id="ui-layer">
-            <div id="score">Score: 0</div>
+            <div id="score" aria-live="polite">Score: 0</div>
             <button id="fullscreen-btn">Fullscreen</button>
             <div id="active-powerups"></div>
 
-            <div id="game-over" style="display: none;">
+            <div id="game-over" style="display: none;" aria-live="assertive">
                 <h1>GAME OVER</h1>
                 <p>Score: <span id="final-score">0</span></p>
                 <button id="restart-btn">Restart</button>
