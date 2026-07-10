@@ -2,6 +2,10 @@ import random
 import json
 from high_score import load_high_score, save_high_score, update_high_score
 
+def display_high_score():
+    high_score = load_high_score()
+    print(f'Current high score: {high_score}')
+
 def main():
     print('Welcome to the number guessing game!')
     play_again = 'y'
@@ -29,10 +33,24 @@ def main():
                 attempts -= 1
         play_again = input('Would you like to play again? (y/n): ')
     print(f'Game over! Your final score is {score}.')
-    if score > high_score:
-        high_score = score
-        save_high_score(high_score)
+    high_score = update_high_score(score)
     print(f'High score: {high_score}')
 
+def menu():
+    while True:
+        print('\nMenu:')
+        print('1. Play game')
+        print('2. View high score')
+        print('3. Quit')
+        choice = input('Enter your choice: ')
+        if choice == '1':
+            main()
+        elif choice == '2':
+            display_high_score()
+        elif choice == '3':
+            break
+        else:
+            print('Invalid choice. Please try again.')
+
 if __name__ == '__main__':
-    main()
+    menu()
