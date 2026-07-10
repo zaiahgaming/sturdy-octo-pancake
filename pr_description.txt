@@ -1,0 +1,3 @@
+🎯 **What:** The testing gap for the Powerup class was addressed. Since this project does not use any external frameworks or build systems, a vanilla Node script utilizing node:test and node:assert was created. It uses the Node.js vm module to mock the browser environment.
+📊 **Coverage:** Powerup initialization, the draw() method pulse increment, and update() state mutations are covered.
+✨ **Result:** Enhanced test coverage that catches bugs locally before commits, without adding heavy NPM dependencies.
