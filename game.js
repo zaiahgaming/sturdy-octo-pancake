@@ -288,8 +288,10 @@ function animate() {
     // Update powerups
     powerups.forEach((powerup, index) => {
         powerup.update();
-        const dist = Math.hypot(player.x - powerup.x, player.y - powerup.y);
-        if (dist - powerup.radius - player.radius < 0) {
+        const dx = player.x - powerup.x;
+        const dy = player.y - powerup.y;
+        const r = powerup.radius + player.radius;
+        if (dx * dx + dy * dy < r * r) {
             sounds.powerup();
             if (powerup.type === 'spread') activePowerups.spread = 600; // 10 seconds
             if (powerup.type === 'rapid') activePowerups.rapid = 600;
@@ -322,8 +324,10 @@ function animate() {
         }
 
         // Collision with player
-        const dist = Math.hypot(player.x - projectile.x, player.y - projectile.y);
-        if (dist - projectile.radius - player.radius < 0) {
+        const dx = player.x - projectile.x;
+        const dy = player.y - projectile.y;
+        const r = projectile.radius + player.radius;
+        if (dx * dx + dy * dy < r * r) {
             if (player.invulnerable) return;
             if (activePowerups.shield) {
                 activePowerups.shield = false;
@@ -360,7 +364,9 @@ function animate() {
         enemy.update();
 
         // Collision with player
-        const distToPlayer = Math.hypot(player.x - enemy.x, player.y - enemy.y);
+        const dxToPlayer = player.x - enemy.x;
+        const dyToPlayer = player.y - enemy.y;
+        const distSqToPlayer = dxToPlayer * dxToPlayer + dyToPlayer * dyToPlayer;
 
         // Adjust hitbox based on enemy type
         let hitBoxRadius = enemy.radius;
@@ -372,8 +378,9 @@ function animate() {
             triggerShake(10, 200);
 
             // Check if player is caught in bomber blast
-            const blastDist = Math.hypot(player.x - ex, player.y - ey);
-            if (blastDist < 60) {
+            const bdx = player.x - ex;
+            const bdy = player.y - ey;
+            if (bdx * bdx + bdy * bdy < 3600) { // 60 * 60
                 if (player.invulnerable) return;
                 if (activePowerups.shield) {
                     activePowerups.shield = false;
@@ -389,7 +396,8 @@ function animate() {
             }
         };
 
-        if (distToPlayer - hitBoxRadius - player.radius < 0) {
+        const rToPlayer = hitBoxRadius + player.radius;
+        if (distSqToPlayer < rToPlayer * rToPlayer) {
             if (enemy.type === 'bomber') {
                 triggerBomberExplosion(enemy.x, enemy.y);
                 enemies.splice(enemyIndex, 1);
@@ -413,9 +421,11 @@ function animate() {
 
         // Collision with projectiles
         projectiles.forEach((projectile, projectileIndex) => {
-            const distToProjectile = Math.hypot(projectile.x - enemy.x, projectile.y - enemy.y);
+            const dxProj = projectile.x - enemy.x;
+            const dyProj = projectile.y - enemy.y;
+            const rProj = hitBoxRadius + projectile.radius;
 
-            if (distToProjectile - hitBoxRadius - projectile.radius < 0) {
+            if (dxProj * dxProj + dyProj * dyProj < rProj * rProj) {
                 // Create explosions
                 createExplosion(projectile.x, projectile.y, enemy.radius, enemy.color);
                 sounds.explosion();
