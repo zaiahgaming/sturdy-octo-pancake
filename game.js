@@ -313,10 +313,7 @@ function animate() {
         projectile.update();
 
         // Remove off-screen projectiles
-        if (projectile.x + projectile.radius < 0 ||
-            projectile.x - projectile.radius > canvas.width ||
-            projectile.y + projectile.radius < 0 ||
-            projectile.y - projectile.radius > canvas.height) {
+        if (projectile.isOffScreen(canvas.width, canvas.height)) {
             enemyProjectiles.splice(index, 1);
             return;
         }
@@ -345,10 +342,7 @@ function animate() {
         projectile.update();
 
         // Remove off-screen projectiles
-        if (projectile.x + projectile.radius < 0 ||
-            projectile.x - projectile.radius > canvas.width ||
-            projectile.y + projectile.radius < 0 ||
-            projectile.y - projectile.radius > canvas.height) {
+        if (projectile.isOffScreen(canvas.width, canvas.height)) {
             projectiles.splice(index, 1);
         }
     });
@@ -755,6 +749,15 @@ class Projectile {
         this.draw();
         this.x += this.velocity.x;
         this.y += this.velocity.y;
+    }
+
+    isOffScreen(canvasWidth, canvasHeight) {
+        return (
+            this.x + this.radius < 0 ||
+            this.x - this.radius > canvasWidth ||
+            this.y + this.radius < 0 ||
+            this.y - this.radius > canvasHeight
+        );
     }
 }
 
