@@ -562,6 +562,7 @@ document.getElementById('start-btn').addEventListener('click', () => {
     gameActive = true;
     init();
     animate();
+    canvas.focus();
 });
 
 document.getElementById('restart-btn').addEventListener('click', () => {
@@ -569,6 +570,7 @@ document.getElementById('restart-btn').addEventListener('click', () => {
     gameActive = true;
     init();
     animate();
+    canvas.focus();
 });
 
 // Decrease powerup timers
