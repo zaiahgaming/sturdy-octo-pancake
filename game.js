@@ -24,7 +24,8 @@ const keys = {
     w: false,
     a: false,
     s: false,
-    d: false
+    d: false,
+    ' ': false
 };
 
 const mouse = {
@@ -33,12 +34,221 @@ const mouse = {
     isDown: false
 };
 
+class SoundManager {
+    constructor() {
+        this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+        this.masterGain = this.ctx.createGain();
+        this.masterGain.gain.value = 0.3;
+        this.masterGain.connect(this.ctx.destination);
+    }
+
+    resume() {
+        if (this.ctx.state === 'suspended') {
+            this.ctx.resume();
+        }
+    }
+
+    playOscillator(type, freq, time, endFreq, vol = 1) {
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+
+        osc.type = type;
+        osc.connect(gain);
+        gain.connect(this.masterGain);
+
+        osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+        if (endFreq) {
+            osc.frequency.exponentialRampToValueAtTime(endFreq, this.ctx.currentTime + time);
+        }
+
+        gain.gain.setValueAtTime(vol, this.ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + time);
+
+        osc.start();
+        osc.stop(this.ctx.currentTime + time);
+    }
+
+    shoot() {
+        this.resume();
+        this.playOscillator('square', 800, 0.1, 300, 0.5);
+    }
+
+    explosion() {
+        this.resume();
+        this.playOscillator('sawtooth', 100, 0.3, 20, 0.8);
+    }
+
+    powerup() {
+        this.resume();
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sine';
+        osc.connect(gain);
+        gain.connect(this.masterGain);
+
+        osc.frequency.setValueAtTime(400, this.ctx.currentTime);
+        osc.frequency.linearRampToValueAtTime(800, this.ctx.currentTime + 0.1);
+        osc.frequency.linearRampToValueAtTime(1200, this.ctx.currentTime + 0.2);
+
+        gain.gain.setValueAtTime(0.5, this.ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.3);
+
+        osc.start();
+        osc.stop(this.ctx.currentTime + 0.3);
+    }
+
+    dash() {
+        this.resume();
+        this.playOscillator('triangle', 600, 0.2, 100, 0.6);
+    }
+
+    damage() {
+        this.resume();
+        this.playOscillator('sawtooth', 200, 0.2, 50, 1.0);
+    }
+}
+
+const sounds = new SoundManager();
+
 // Game entities arrays
 let player;
 let projectiles = [];
 let enemies = [];
 let particles = [];
 let enemyProjectiles = [];
+let powerups = [];
+
+const powerupTypes = [
+    { type: 'spread', color: '#ff0', text: 'Spread Shot' },
+    { type: 'rapid', color: '#0f0', text: 'Rapid Fire' },
+    { type: 'shield', color: '#00f', text: 'Shield' }
+];
+
+let activePowerups = {
+    spread: 0,
+    rapid: 0,
+    shield: false
+};
+
+class Powerup {
+    constructor(x, y, typeInfo) {
+        this.x = x;
+        this.y = y;
+        this.radius = 10;
+        this.type = typeInfo.type;
+        this.color = typeInfo.color;
+        this.text = typeInfo.text;
+        this.pulse = 0;
+    }
+
+    draw() {
+        this.pulse += 0.1;
+        const currentRadius = this.radius + Math.sin(this.pulse) * 2;
+
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, currentRadius, 0, Math.PI * 2);
+        ctx.fillStyle = this.color;
+        ctx.shadowColor = this.color;
+        ctx.shadowBlur = 20;
+        ctx.fill();
+        ctx.closePath();
+        ctx.shadowBlur = 0;
+
+        ctx.fillStyle = '#fff';
+        ctx.font = '10px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText(this.text, this.x, this.y - 15);
+    }
+
+    update() {
+        this.draw();
+    }
+}
+
+function updatePowerupUI() {
+    const container = document.getElementById('active-powerups');
+    container.innerHTML = '';
+
+    if (activePowerups.spread > 0) {
+        const el = document.createElement('div');
+        el.className = 'powerup-indicator';
+        el.style.color = '#ff0';
+        el.innerText = `Spread: ${Math.ceil(activePowerups.spread / 60)}s`;
+        container.appendChild(el);
+    }
+    if (activePowerups.rapid > 0) {
+        const el = document.createElement('div');
+        el.className = 'powerup-indicator';
+        el.style.color = '#0f0';
+        el.innerText = `Rapid: ${Math.ceil(activePowerups.rapid / 60)}s`;
+        container.appendChild(el);
+    }
+    if (activePowerups.shield) {
+        const el = document.createElement('div');
+        el.className = 'powerup-indicator';
+        el.style.color = '#00f';
+        el.innerText = `Shield Active`;
+        container.appendChild(el);
+    }
+}
+
+// Screen shake state
+let screenShake = {
+    active: false,
+    intensity: 0,
+    duration: 0,
+    startTime: 0
+};
+
+function triggerShake(intensity, duration) {
+    screenShake.active = true;
+    screenShake.intensity = intensity;
+    screenShake.duration = duration;
+    screenShake.startTime = Date.now();
+}
+
+function applyScreenShake() {
+    if (!screenShake.active) return;
+
+    const elapsed = Date.now() - screenShake.startTime;
+    if (elapsed > screenShake.duration) {
+        screenShake.active = false;
+        ctx.setTransform(1, 0, 0, 1, 0, 0); // Reset transform
+        return;
+    }
+
+    const dampening = 1 - (elapsed / screenShake.duration);
+    const currentIntensity = screenShake.intensity * dampening;
+
+    const dx = (Math.random() - 0.5) * 2 * currentIntensity;
+    const dy = (Math.random() - 0.5) * 2 * currentIntensity;
+
+    ctx.setTransform(1, 0, 0, 1, dx, dy);
+}
+
+// Background Grid
+let gridOffset = 0;
+function drawBackground() {
+    ctx.fillStyle = '#0a0a1a';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    ctx.strokeStyle = 'rgba(0, 255, 255, 0.1)';
+    ctx.lineWidth = 1;
+
+    const gridSize = 50;
+    gridOffset = (gridOffset + 0.5) % gridSize;
+
+    ctx.beginPath();
+    for(let x = 0; x < canvas.width; x += gridSize) {
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, canvas.height);
+    }
+    for(let y = gridOffset; y < canvas.height; y += gridSize) {
+        ctx.moveTo(0, y);
+        ctx.lineTo(canvas.width, y);
+    }
+    ctx.stroke();
+}
 
 function init() {
     score = 0;
@@ -59,11 +269,35 @@ function animate() {
     if (!gameActive) return;
     animationId = requestAnimationFrame(animate);
 
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.2)'; // Trailing effect
+    ctx.setTransform(1, 0, 0, 1, 0, 0); // Reset transform before clearing
+
+    // Replace old trail effect with dynamic grid background
+    drawBackground();
+
+    // Apply optional trailing effect over grid
+    ctx.fillStyle = 'rgba(10, 10, 26, 0.4)';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    applyScreenShake();
+
+    updatePowerupTimers();
 
     player.update();
     handleShooting();
+
+    // Update powerups
+    powerups.forEach((powerup, index) => {
+        powerup.update();
+        const dist = Math.hypot(player.x - powerup.x, player.y - powerup.y);
+        if (dist - powerup.radius - player.radius < 0) {
+            sounds.powerup();
+            if (powerup.type === 'spread') activePowerups.spread = 600; // 10 seconds
+            if (powerup.type === 'rapid') activePowerups.rapid = 600;
+            if (powerup.type === 'shield') activePowerups.shield = true;
+            powerups.splice(index, 1);
+            updatePowerupUI();
+        }
+    });
 
     // Update particles
     particles.forEach((particle, index) => {
@@ -90,6 +324,18 @@ function animate() {
         // Collision with player
         const dist = Math.hypot(player.x - projectile.x, player.y - projectile.y);
         if (dist - projectile.radius - player.radius < 0) {
+            if (player.invulnerable) return;
+            if (activePowerups.shield) {
+                activePowerups.shield = false;
+                player.invulnerable = true;
+                setTimeout(() => player.invulnerable = false, 1000);
+                enemyProjectiles.splice(index, 1);
+                updatePowerupUI();
+                sounds.damage();
+                return;
+            }
+            sounds.damage();
+            triggerShake(15, 300);
             gameOver();
         }
     });
@@ -120,7 +366,48 @@ function animate() {
         let hitBoxRadius = enemy.radius;
         if (enemy.type === 'shooter') hitBoxRadius *= 1.2; // Approximate square hitbox
 
+        const triggerBomberExplosion = (ex, ey) => {
+            createExplosion(ex, ey, 50, '#f50');
+            sounds.explosion();
+            triggerShake(10, 200);
+
+            // Check if player is caught in bomber blast
+            const blastDist = Math.hypot(player.x - ex, player.y - ey);
+            if (blastDist < 60) {
+                if (player.invulnerable) return;
+                if (activePowerups.shield) {
+                    activePowerups.shield = false;
+                    player.invulnerable = true;
+                    setTimeout(() => player.invulnerable = false, 1000);
+                    updatePowerupUI();
+                    sounds.damage();
+                    return;
+                }
+                sounds.damage();
+                triggerShake(20, 400);
+                gameOver();
+            }
+        };
+
         if (distToPlayer - hitBoxRadius - player.radius < 0) {
+            if (enemy.type === 'bomber') {
+                triggerBomberExplosion(enemy.x, enemy.y);
+                enemies.splice(enemyIndex, 1);
+                return;
+            }
+
+            if (player.invulnerable) return;
+            if (activePowerups.shield) {
+                activePowerups.shield = false;
+                player.invulnerable = true;
+                setTimeout(() => player.invulnerable = false, 1000);
+                enemies.splice(enemyIndex, 1);
+                updatePowerupUI();
+                sounds.damage();
+                return;
+            }
+            sounds.damage();
+            triggerShake(15, 300);
             gameOver();
         }
 
@@ -131,6 +418,18 @@ function animate() {
             if (distToProjectile - hitBoxRadius - projectile.radius < 0) {
                 // Create explosions
                 createExplosion(projectile.x, projectile.y, enemy.radius, enemy.color);
+                sounds.explosion();
+                triggerShake(3, 100);
+
+                if (enemy.type === 'bomber') {
+                    triggerBomberExplosion(enemy.x, enemy.y);
+                }
+
+                // Drop powerup
+                if (Math.random() < 0.1 && enemy.type !== 'bomber') {
+                    const pType = powerupTypes[Math.floor(Math.random() * powerupTypes.length)];
+                    powerups.push(new Powerup(enemy.x, enemy.y, pType));
+                }
 
                 // Remove enemy and projectile
                 setTimeout(() => {
@@ -272,6 +571,20 @@ document.getElementById('restart-btn').addEventListener('click', () => {
     animate();
 });
 
+// Decrease powerup timers
+function updatePowerupTimers() {
+    let uiNeedsUpdate = false;
+    if (activePowerups.spread > 0) {
+        activePowerups.spread--;
+        if (activePowerups.spread % 60 === 0) uiNeedsUpdate = true;
+    }
+    if (activePowerups.rapid > 0) {
+        activePowerups.rapid--;
+        if (activePowerups.rapid % 60 === 0) uiNeedsUpdate = true;
+    }
+    if (uiNeedsUpdate) updatePowerupUI();
+}
+
 class Player {
     constructor(x, y) {
         this.x = x;
@@ -282,6 +595,9 @@ class Player {
         this.speed = 0.5;
         this.friction = 0.92;
         this.maxSpeed = 5;
+        this.dashCooldown = 0;
+        this.dashDuration = 0;
+        this.invulnerable = false;
     }
 
     draw() {
@@ -315,9 +631,43 @@ class Player {
         ctx.lineWidth = 3;
         ctx.stroke();
         ctx.closePath();
+
+        // Draw shield if active
+        if (activePowerups.shield) {
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.radius + 15, 0, Math.PI * 2);
+            ctx.strokeStyle = '#00f';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            ctx.closePath();
+        }
     }
 
     update() {
+        // Dash logic
+        if (this.dashCooldown > 0) this.dashCooldown--;
+        if (this.dashDuration > 0) {
+            this.dashDuration--;
+            this.invulnerable = true;
+            // Spawn dash particles
+            particles.push(new Particle(this.x, this.y, 5, '#0ff', { x: 0, y: 0 }));
+            if (this.dashDuration === 0) {
+                this.invulnerable = false;
+                this.maxSpeed = 5;
+            }
+        } else if (keys[' '] && this.dashCooldown === 0) {
+            sounds.dash();
+            this.dashDuration = 15;
+            this.dashCooldown = 120; // 2 seconds at 60fps
+            this.maxSpeed = 15;
+
+            // Apply immediate burst of speed in current movement direction
+            const speed = Math.hypot(this.velocity.x, this.velocity.y);
+            if (speed > 0) {
+                this.velocity.x = (this.velocity.x / speed) * this.maxSpeed;
+                this.velocity.y = (this.velocity.y / speed) * this.maxSpeed;
+            }
+        }
 
         // Joystick movement logic
         if (joystickLeft.active) {
@@ -434,20 +784,31 @@ function handleShooting() {
 
     if (shouldShoot) {
         const currentTime = Date.now();
-        if (currentTime - lastShotTime > fireRate) {
+        const currentFireRate = activePowerups.rapid > 0 ? fireRate / 2 : fireRate;
+        if (currentTime - lastShotTime > currentFireRate) {
             const speed = 10;
-            const velocity = {
-                x: Math.cos(angle) * speed,
-                y: Math.sin(angle) * speed
+            sounds.shoot();
+
+            const createProj = (ang) => {
+                return new Projectile(
+                    player.x,
+                    player.y,
+                    5,
+                    '#0ff',
+                    {
+                        x: Math.cos(ang) * speed,
+                        y: Math.sin(ang) * speed
+                    }
+                );
             };
 
-            projectiles.push(new Projectile(
-                player.x,
-                player.y,
-                5,
-                '#0ff',
-                velocity
-            ));
+            if (activePowerups.spread > 0) {
+                projectiles.push(createProj(angle));
+                projectiles.push(createProj(angle - 0.2));
+                projectiles.push(createProj(angle + 0.2));
+            } else {
+                projectiles.push(createProj(angle));
+            }
 
             lastShotTime = currentTime;
         }
@@ -471,11 +832,27 @@ class Enemy {
         if (this.type === 'shooter') {
             // Draw square for shooter
             ctx.rect(this.x - this.radius, this.y - this.radius, this.radius * 2, this.radius * 2);
+        } else if (this.type === 'bomber') {
+            // Draw triangle for bomber
+            ctx.moveTo(this.x, this.y - this.radius);
+            ctx.lineTo(this.x + this.radius, this.y + this.radius);
+            ctx.lineTo(this.x - this.radius, this.y + this.radius);
+            ctx.closePath();
+
+            // Flash color
+            if (Date.now() % 200 < 100) {
+                ctx.fillStyle = '#fff';
+            } else {
+                ctx.fillStyle = this.color;
+            }
         } else {
             // Draw circle for chaser
             ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2, false);
         }
-        ctx.fillStyle = this.color;
+
+        if (this.type !== 'bomber' || Date.now() % 200 >= 100) {
+            ctx.fillStyle = this.color;
+        }
         ctx.shadowColor = this.color;
         ctx.shadowBlur = 10;
         ctx.fill();
@@ -489,7 +866,7 @@ class Enemy {
         // Calculate direction to player
         const angle = Math.atan2(player.y - this.y, player.x - this.x);
 
-        if (this.type === 'chaser') {
+        if (this.type === 'chaser' || this.type === 'bomber') {
             // Move towards player
             this.x += Math.cos(angle) * this.speed;
             this.y += Math.sin(angle) * this.speed;
@@ -608,9 +985,18 @@ function spawnEnemies() {
             y = Math.random() < 0.5 ? 0 - radius : canvas.height + radius;
         }
 
-        const type = Math.random() < 0.3 && score > 500 ? 'shooter' : 'chaser';
-        const color = type === 'shooter' ? '#f0f' : `hsl(${Math.random() * 360}, 50%, 50%)`;
-        const speed = (Math.random() * 1.5 + 0.5) * (1 + score / 5000); // Speed increases with score
+        let type = 'chaser';
+        let color = `hsl(${Math.random() * 360}, 50%, 50%)`;
+        let speed = (Math.random() * 1.5 + 0.5) * (1 + score / 5000);
+
+        if (score > 500 && Math.random() < 0.3) {
+            type = 'shooter';
+            color = '#f0f';
+        } else if (score > 1000 && Math.random() < 0.2) {
+            type = 'bomber';
+            color = '#f50';
+            speed *= 1.5; // Bombers are fast
+        }
 
         enemies.push(new Enemy(x, y, radius, color, speed, type));
     }, Math.max(500, 1500 - score / 10)); // Spawn rate increases with score
