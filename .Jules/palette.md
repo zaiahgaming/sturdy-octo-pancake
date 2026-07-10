@@ -1,3 +1,3 @@
-## 2024-03-24 - Focus Indicators on Canvas Menus
-**Learning:** In browser games that are heavily keyboard-driven (e.g., using WASD for movement), users often instinctually use the keyboard (like the Tab key) to navigate through HTML overlay menus (Start Screen, Game Over screen). This makes `focus-visible` states critical for accessibility and usability in what might otherwise seem like a mouse-driven UI layer.
-**Action:** Always ensure that any HTML UI elements overlaid on a canvas game have clear keyboard focus indicators, even if the primary interaction is intended to be via mouse or touch.
+## 2026-07-10 - Testing Vanilla JS in Jest
+**Learning:** Testing a monolithic Vanilla JS file that doesn't use standard ES Modules or CommonJS exports requires simulating the browser environment carefully.
+**Action:** Mocked DOM objects (`window`, `document`, Canvas `getContext`) and evaluated the game script via `eval` to extract and test the `Player` class in `game.test.js`.
