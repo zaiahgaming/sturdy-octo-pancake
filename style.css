@@ -41,6 +41,16 @@ canvas {
     text-shadow: 0 0 5px #0ff;
 }
 
+#high-score {
+    position: absolute;
+    top: 50px;
+    left: 20px;
+    font-size: 18px;
+    font-weight: bold;
+    color: #ff0;
+    text-shadow: 0 0 5px #ff0;
+}
+
 #active-powerups {
     position: absolute;
     top: 60px;
@@ -85,6 +95,13 @@ h1 {
 #fullscreen-btn {
     position: absolute;
     top: 20px;
+    right: 20px;
+    pointer-events: auto;
+}
+
+#mute-btn {
+    position: absolute;
+    top: 70px;
     right: 20px;
     pointer-events: auto;
 }

@@ -252,7 +252,10 @@ function drawBackground() {
 
 function init() {
     score = 0;
-    document.getElementById('score').innerText = `Score: ${score}`;
+    document.getElementById('score').textContent = `Score: ${score}`;
+
+    let highScore = localStorage.getItem('neonSurvivorHighScore') || 0;
+    document.getElementById('high-score').textContent = `High Score: ${highScore}`;
 
     player = new Player(canvas.width / 2, canvas.height / 2);
 
@@ -457,9 +460,17 @@ function gameOver() {
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     particles.forEach(p => p.draw());
 
+    let highScore = parseInt(localStorage.getItem('neonSurvivorHighScore') || 0);
+    if (score > highScore) {
+        highScore = score;
+        localStorage.setItem('neonSurvivorHighScore', highScore);
+    }
+
     setTimeout(() => {
         document.getElementById('game-over').style.display = 'block';
-        document.getElementById('final-score').innerText = score;
+        document.getElementById('final-score').textContent = score;
+        document.getElementById('game-over-high-score').textContent = highScore;
+        document.getElementById('restart-btn').focus();
     }, 500);
 }
 
@@ -475,6 +486,17 @@ fullscreenBtn.addEventListener('click', () => {
         });
     } else {
         document.exitFullscreen();
+    }
+});
+
+const muteBtn = document.getElementById('mute-btn');
+muteBtn.addEventListener('click', () => {
+    if (sounds.masterGain.gain.value > 0) {
+        sounds.masterGain.gain.value = 0;
+        muteBtn.textContent = 'Unmute';
+    } else {
+        sounds.masterGain.gain.value = 0.3;
+        muteBtn.textContent = 'Mute';
     }
 });
 
@@ -556,6 +578,10 @@ function handleTouchEnd(e) {
 canvas.addEventListener('touchend', handleTouchEnd, {passive: false});
 canvas.addEventListener('touchcancel', handleTouchEnd, {passive: false});
 
+
+document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('start-btn').focus();
+});
 
 document.getElementById('start-btn').addEventListener('click', () => {
     document.getElementById('start-screen').style.display = 'none';
