@@ -7,3 +7,6 @@
 ## 2024-11-06 - [Canvas Focus UX]
 **Learning:** Requiring users to click the canvas before keyboard inputs register is poor UX. Adding tabindex and programmatically focusing the canvas on start/restart improves keyboard accessibility.
 **Action:** Added tabindex="0" and aria-label to the canvas, and called canvas.focus() in the start and restart button click handlers.
+## 2024-11-06 - [Dialog Focus Management]
+**Learning:** When displaying modal overlays (like a Game Over screen) over a canvas, keyboard focus is lost or left behind on the canvas. Screen readers and keyboard users require focus to be programmatically moved to the modal's primary action button for accessibility.
+**Action:** Added `role="dialog"`, `aria-modal="true"`, and `aria-labelledby` to the overlay screens, and implemented `element.focus()` on the restart button when the game ends.
