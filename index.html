@@ -14,13 +14,13 @@
             <button id="fullscreen-btn">Fullscreen</button>
             <div id="active-powerups"></div>
 
-            <div id="game-over" style="display: none;">
-                <h1>GAME OVER</h1>
+            <div id="game-over" style="display: none;" role="dialog" aria-labelledby="game-over-title" aria-modal="true">
+                <h1 id="game-over-title">GAME OVER</h1>
                 <p>Score: <span id="final-score">0</span></p>
                 <button id="restart-btn">Restart</button>
             </div>
-            <div id="start-screen">
-                <h1>NEON SURVIVOR</h1>
+            <div id="start-screen" role="dialog" aria-labelledby="start-screen-title" aria-modal="true">
+                <h1 id="start-screen-title">NEON SURVIVOR</h1>
                 <p>WASD to Move | Mouse to Aim | Left Click to Shoot</p>
                 <button id="start-btn">Start Game</button>
             </div>
