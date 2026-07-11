@@ -288,8 +288,10 @@ function animate() {
     // Update powerups
     powerups.forEach((powerup, index) => {
         powerup.update();
-        const dist = Math.hypot(player.x - powerup.x, player.y - powerup.y);
-        if (dist - powerup.radius - player.radius < 0) {
+        const dx = player.x - powerup.x;
+        const dy = player.y - powerup.y;
+        const radiusSum = powerup.radius + player.radius;
+        if (dx * dx + dy * dy < radiusSum * radiusSum) {
             sounds.powerup();
             if (powerup.type === 'spread') activePowerups.spread = 600; // 10 seconds
             if (powerup.type === 'rapid') activePowerups.rapid = 600;
@@ -322,8 +324,10 @@ function animate() {
         }
 
         // Collision with player
-        const dist = Math.hypot(player.x - projectile.x, player.y - projectile.y);
-        if (dist - projectile.radius - player.radius < 0) {
+        const dx = player.x - projectile.x;
+        const dy = player.y - projectile.y;
+        const radiusSum = projectile.radius + player.radius;
+        if (dx * dx + dy * dy < radiusSum * radiusSum) {
             if (player.invulnerable) return;
             if (activePowerups.shield) {
                 activePowerups.shield = false;
@@ -360,7 +364,9 @@ function animate() {
         enemy.update();
 
         // Collision with player
-        const distToPlayer = Math.hypot(player.x - enemy.x, player.y - enemy.y);
+        const dxPlayer = player.x - enemy.x;
+        const dyPlayer = player.y - enemy.y;
+        const distToPlayerSq = dxPlayer * dxPlayer + dyPlayer * dyPlayer;
 
         // Adjust hitbox based on enemy type
         let hitBoxRadius = enemy.radius;
@@ -372,8 +378,9 @@ function animate() {
             triggerShake(10, 200);
 
             // Check if player is caught in bomber blast
-            const blastDist = Math.hypot(player.x - ex, player.y - ey);
-            if (blastDist < 60) {
+            const bdx = player.x - ex;
+            const bdy = player.y - ey;
+            if (bdx * bdx + bdy * bdy < 3600) {
                 if (player.invulnerable) return;
                 if (activePowerups.shield) {
                     activePowerups.shield = false;
@@ -389,7 +396,8 @@ function animate() {
             }
         };
 
-        if (distToPlayer - hitBoxRadius - player.radius < 0) {
+        const playerRadiusSum = hitBoxRadius + player.radius;
+        if (distToPlayerSq < playerRadiusSum * playerRadiusSum) {
             if (enemy.type === 'bomber') {
                 triggerBomberExplosion(enemy.x, enemy.y);
                 enemies.splice(enemyIndex, 1);
@@ -413,9 +421,11 @@ function animate() {
 
         // Collision with projectiles
         projectiles.forEach((projectile, projectileIndex) => {
-            const distToProjectile = Math.hypot(projectile.x - enemy.x, projectile.y - enemy.y);
+            const pdx = projectile.x - enemy.x;
+            const pdy = projectile.y - enemy.y;
+            const projRadiusSum = hitBoxRadius + projectile.radius;
 
-            if (distToProjectile - hitBoxRadius - projectile.radius < 0) {
+            if (pdx * pdx + pdy * pdy < projRadiusSum * projRadiusSum) {
                 // Create explosions
                 createExplosion(projectile.x, projectile.y, enemy.radius, enemy.color);
                 sounds.explosion();
@@ -874,11 +884,14 @@ class Enemy {
             this.y += Math.sin(angle) * this.speed;
         } else if (this.type === 'shooter') {
             // Keep some distance from player
-            const dist = Math.hypot(player.x - this.x, player.y - this.y);
-            if (dist > 200) {
+            const dx = player.x - this.x;
+            const dy = player.y - this.y;
+            const distSq = dx * dx + dy * dy;
+
+            if (distSq > 40000) {
                 this.x += Math.cos(angle) * this.speed;
                 this.y += Math.sin(angle) * this.speed;
-            } else if (dist < 150) {
+            } else if (distSq < 22500) {
                 this.x -= Math.cos(angle) * this.speed;
                 this.y -= Math.sin(angle) * this.speed;
             }
