@@ -413,9 +413,12 @@ function animate() {
 
         // Collision with projectiles
         projectiles.forEach((projectile, projectileIndex) => {
-            const distToProjectile = Math.hypot(projectile.x - enemy.x, projectile.y - enemy.y);
+            const dx = projectile.x - enemy.x;
+            const dy = projectile.y - enemy.y;
+            const distSq = dx * dx + dy * dy;
+            const radiusSum = hitBoxRadius + projectile.radius;
 
-            if (distToProjectile - hitBoxRadius - projectile.radius < 0) {
+            if (distSq < radiusSum * radiusSum) {
                 // Create explosions
                 createExplosion(projectile.x, projectile.y, enemy.radius, enemy.color);
                 sounds.explosion();
