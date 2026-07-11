@@ -1,6 +1,6 @@
-const { expect } = require('chai');
-const { JSDOM } = require('jsdom');
-const fs = require('fs');
+import { expect } from 'chai';
+import { JSDOM } from 'jsdom';
+import fs from 'fs';
 
 const html = fs.readFileSync('./index.html', 'utf-8');
 const js = fs.readFileSync('./game.js', 'utf-8');
