@@ -65,4 +65,18 @@ describe('Game UX Improvements', () => {
         restartBtn.click();
         expect(document.activeElement).to.equal(canvas);
     });
+
+    it('should focus the restart button on game over', (done) => {
+        window.eval(`
+            gameActive = true;
+            init();
+            gameOver();
+        `);
+
+        setTimeout(() => {
+            const restartBtn = document.getElementById('restart-btn');
+            expect(document.activeElement).to.equal(restartBtn);
+            done();
+        }, 600); // Wait for the 500ms timeout in gameOver + buffer
+    });
 });

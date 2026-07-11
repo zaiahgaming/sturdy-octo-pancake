@@ -7,3 +7,6 @@
 ## 2024-11-06 - [Canvas Focus UX]
 **Learning:** Requiring users to click the canvas before keyboard inputs register is poor UX. Adding tabindex and programmatically focusing the canvas on start/restart improves keyboard accessibility.
 **Action:** Added tabindex="0" and aria-label to the canvas, and called canvas.focus() in the start and restart button click handlers.
+## 2026-07-11 - Menu Flow Focus States
+**Learning:** For modal-like overlays (like a game over screen), auto-focusing the primary action button (e.g. "Restart") reduces friction and enables rapid retry via keyboard (Enter/Space), which is crucial for fast-paced games where users may already have their hands on the keyboard.
+**Action:** Always auto-focus the most logical "next action" button when displaying modal overlays or transitional screens.
