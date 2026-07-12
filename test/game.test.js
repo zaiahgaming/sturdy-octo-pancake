@@ -81,4 +81,22 @@ describe('Game UX Improvements', () => {
         expect(fullscreenBtn.innerText).to.equal('Fullscreen');
         expect(fullscreenBtn.getAttribute('aria-pressed')).to.equal('false');
     });
+
+    it('should toggle mute button text and aria-pressed on click', () => {
+        const muteBtn = document.getElementById('mute-btn');
+
+        // Initial state
+        expect(muteBtn.textContent).to.equal('Mute');
+        expect(muteBtn.getAttribute('aria-pressed')).to.equal('false');
+
+        // Click to mute
+        muteBtn.click();
+        expect(muteBtn.textContent).to.equal('Unmute');
+        expect(muteBtn.getAttribute('aria-pressed')).to.equal('true');
+
+        // Click to unmute
+        muteBtn.click();
+        expect(muteBtn.textContent).to.equal('Mute');
+        expect(muteBtn.getAttribute('aria-pressed')).to.equal('false');
+    });
 });
