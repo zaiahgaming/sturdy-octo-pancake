@@ -288,8 +288,11 @@ function animate() {
     // Update powerups
     powerups.forEach((powerup, index) => {
         powerup.update();
-        const dist = Math.hypot(player.x - powerup.x, player.y - powerup.y);
-        if (dist - powerup.radius - player.radius < 0) {
+        const dx = player.x - powerup.x;
+        const dy = player.y - powerup.y;
+        const distSq = dx * dx + dy * dy;
+        const radii = powerup.radius + player.radius;
+        if (distSq < radii * radii) {
             sounds.powerup();
             if (powerup.type === 'spread') activePowerups.spread = 600; // 10 seconds
             if (powerup.type === 'rapid') activePowerups.rapid = 600;
@@ -322,8 +325,11 @@ function animate() {
         }
 
         // Collision with player
-        const dist = Math.hypot(player.x - projectile.x, player.y - projectile.y);
-        if (dist - projectile.radius - player.radius < 0) {
+        const dx = player.x - projectile.x;
+        const dy = player.y - projectile.y;
+        const distSq = dx * dx + dy * dy;
+        const radii = projectile.radius + player.radius;
+        if (distSq < radii * radii) {
             if (player.invulnerable) return;
             if (activePowerups.shield) {
                 activePowerups.shield = false;
@@ -360,7 +366,9 @@ function animate() {
         enemy.update();
 
         // Collision with player
-        const distToPlayer = Math.hypot(player.x - enemy.x, player.y - enemy.y);
+        const dxPlayer = player.x - enemy.x;
+        const dyPlayer = player.y - enemy.y;
+        const distSqToPlayer = dxPlayer * dxPlayer + dyPlayer * dyPlayer;
 
         // Adjust hitbox based on enemy type
         let hitBoxRadius = enemy.radius;
@@ -372,8 +380,10 @@ function animate() {
             triggerShake(10, 200);
 
             // Check if player is caught in bomber blast
-            const blastDist = Math.hypot(player.x - ex, player.y - ey);
-            if (blastDist < 60) {
+            const bdx = player.x - ex;
+            const bdy = player.y - ey;
+            const blastDistSq = bdx * bdx + bdy * bdy;
+            if (blastDistSq < 3600) { // 60 * 60
                 if (player.invulnerable) return;
                 if (activePowerups.shield) {
                     activePowerups.shield = false;
@@ -389,7 +399,8 @@ function animate() {
             }
         };
 
-        if (distToPlayer - hitBoxRadius - player.radius < 0) {
+        const radiiSumPlayer = hitBoxRadius + player.radius;
+        if (distSqToPlayer < radiiSumPlayer * radiiSumPlayer) {
             if (enemy.type === 'bomber') {
                 triggerBomberExplosion(enemy.x, enemy.y);
                 enemies.splice(enemyIndex, 1);
@@ -413,9 +424,12 @@ function animate() {
 
         // Collision with projectiles
         projectiles.forEach((projectile, projectileIndex) => {
-            const distToProjectile = Math.hypot(projectile.x - enemy.x, projectile.y - enemy.y);
+            const dxProj = projectile.x - enemy.x;
+            const dyProj = projectile.y - enemy.y;
+            const distSqToProj = dxProj * dxProj + dyProj * dyProj;
+            const radiiSumProj = hitBoxRadius + projectile.radius;
 
-            if (distToProjectile - hitBoxRadius - projectile.radius < 0) {
+            if (distSqToProj < radiiSumProj * radiiSumProj) {
                 // Create explosions
                 createExplosion(projectile.x, projectile.y, enemy.radius, enemy.color);
                 sounds.explosion();
@@ -620,7 +634,7 @@ class Player {
         if (joystickRight.active) {
             const dx = joystickRight.x - joystickRight.originX;
             const dy = joystickRight.y - joystickRight.originY;
-            if (Math.hypot(dx, dy) > 10) {
+            if (dx * dx + dy * dy > 100) {
                  angle = Math.atan2(dy, dx);
             }
         }
@@ -664,7 +678,7 @@ class Player {
             this.maxSpeed = 15;
 
             // Apply immediate burst of speed in current movement direction
-            const speed = Math.hypot(this.velocity.x, this.velocity.y);
+            const speed = Math.sqrt(this.velocity.x * this.velocity.x + this.velocity.y * this.velocity.y);
             if (speed > 0) {
                 this.velocity.x = (this.velocity.x / speed) * this.maxSpeed;
                 this.velocity.y = (this.velocity.y / speed) * this.maxSpeed;
@@ -676,7 +690,7 @@ class Player {
             const dx = joystickLeft.x - joystickLeft.originX;
             const dy = joystickLeft.y - joystickLeft.originY;
             const maxRadius = 50;
-            const dist = Math.hypot(dx, dy);
+            const dist = Math.sqrt(dx * dx + dy * dy);
 
             // normalized vector
             let nx = dx / dist;
@@ -700,7 +714,7 @@ class Player {
         this.velocity.y *= this.friction;
 
         // Limit speed
-        const speed = Math.hypot(this.velocity.x, this.velocity.y);
+        const speed = Math.sqrt(this.velocity.x * this.velocity.x + this.velocity.y * this.velocity.y);
         if (speed > this.maxSpeed) {
             const ratio = this.maxSpeed / speed;
             this.velocity.x *= ratio;
@@ -775,10 +789,10 @@ function handleShooting() {
     } else if (joystickRight.active) {
         const dx = joystickRight.x - joystickRight.originX;
         const dy = joystickRight.y - joystickRight.originY;
-        const dist = Math.hypot(dx, dy);
+        const distSq = dx * dx + dy * dy;
 
         // Only shoot if pulled far enough
-        if (dist > 10) {
+        if (distSq > 100) {
             shouldShoot = true;
             angle = Math.atan2(dy, dx);
         }
@@ -874,11 +888,13 @@ class Enemy {
             this.y += Math.sin(angle) * this.speed;
         } else if (this.type === 'shooter') {
             // Keep some distance from player
-            const dist = Math.hypot(player.x - this.x, player.y - this.y);
-            if (dist > 200) {
+            const dx = player.x - this.x;
+            const dy = player.y - this.y;
+            const distSq = dx * dx + dy * dy;
+            if (distSq > 40000) { // 200 * 200
                 this.x += Math.cos(angle) * this.speed;
                 this.y += Math.sin(angle) * this.speed;
-            } else if (dist < 150) {
+            } else if (distSq < 22500) { // 150 * 150
                 this.x -= Math.cos(angle) * this.speed;
                 this.y -= Math.sin(angle) * this.speed;
             }
@@ -924,7 +940,7 @@ function drawJoysticks() {
 
         const dx = joystickLeft.x - joystickLeft.originX;
         const dy = joystickLeft.y - joystickLeft.originY;
-        const dist = Math.hypot(dx, dy);
+        const dist = Math.sqrt(dx * dx + dy * dy);
         const maxRadius = 50;
 
         let drawX = joystickLeft.x;
@@ -952,7 +968,7 @@ function drawJoysticks() {
 
         const dx = joystickRight.x - joystickRight.originX;
         const dy = joystickRight.y - joystickRight.originY;
-        const dist = Math.hypot(dx, dy);
+        const dist = Math.sqrt(dx * dx + dy * dy);
         const maxRadius = 50;
 
         let drawX = joystickRight.x;
