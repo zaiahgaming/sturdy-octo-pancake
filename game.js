@@ -493,6 +493,16 @@ fullscreenBtn.addEventListener('click', () => {
     }
 });
 
+document.addEventListener('fullscreenchange', () => {
+    if (document.fullscreenElement) {
+        fullscreenBtn.innerText = 'Exit Fullscreen';
+        fullscreenBtn.setAttribute('aria-pressed', 'true');
+    } else {
+        fullscreenBtn.innerText = 'Fullscreen';
+        fullscreenBtn.setAttribute('aria-pressed', 'false');
+    }
+});
+
 window.addEventListener('keydown', (e) => {
     if (Object.prototype.hasOwnProperty.call(keys, e.key.toLowerCase())) {
         keys[e.key.toLowerCase()] = true;
