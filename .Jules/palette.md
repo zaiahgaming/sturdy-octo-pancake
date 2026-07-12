@@ -10,3 +10,6 @@
 ## 2026-07-12 - [Accessible Fullscreen Toggle]
 **Learning:** Adding dynamic `aria-pressed` states and dynamic text to toggle buttons like a Fullscreen button helps screen reader users understand the button's purpose and its current state. Relying on visual changes alone makes it opaque.
 **Action:** Always add dynamic text and `aria-pressed` attributes to buttons that function as toggles.
+## 2026-07-12 - Accessibility & UX Improvements
+**Learning:** Using `textContent` instead of `innerText` improves standards compliance and works better with testing tools like JSDOM. Providing `aria-live="polite"` ensures screen readers read powerups correctly without disrupting users. The canvas needs `cursor: crosshair;` for better aiming UX.
+**Action:** Replaced `innerText` with `textContent`, added `aria-live="polite"` to powerup element, and added `cursor: crosshair` to the canvas styling.

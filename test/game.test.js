@@ -72,13 +72,13 @@ describe('Game UX Improvements', () => {
         // Simulate entering fullscreen
         document.fullscreenElement = document.documentElement;
         document.dispatchEvent(new window.Event('fullscreenchange'));
-        expect(fullscreenBtn.innerText).to.equal('Exit Fullscreen');
+        expect(fullscreenBtn.textContent).to.equal('Exit Fullscreen');
         expect(fullscreenBtn.getAttribute('aria-pressed')).to.equal('true');
 
         // Simulate exiting fullscreen
         document.fullscreenElement = null;
         document.dispatchEvent(new window.Event('fullscreenchange'));
-        expect(fullscreenBtn.innerText).to.equal('Fullscreen');
+        expect(fullscreenBtn.textContent).to.equal('Fullscreen');
         expect(fullscreenBtn.getAttribute('aria-pressed')).to.equal('false');
     });
 });
