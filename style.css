@@ -89,6 +89,13 @@ h1 {
     pointer-events: auto;
 }
 
+#mute-btn {
+    position: absolute;
+    top: 20px;
+    right: 170px; /* position it to the left of fullscreen btn */
+    pointer-events: auto;
+}
+
 button {
     background: transparent;
     color: #0ff;

@@ -40,6 +40,13 @@ class SoundManager {
         this.masterGain = this.ctx.createGain();
         this.masterGain.gain.value = 0.3;
         this.masterGain.connect(this.ctx.destination);
+        this.isMuted = false;
+    }
+
+    toggleMute() {
+        this.isMuted = !this.isMuted;
+        this.masterGain.gain.value = this.isMuted ? 0 : 0.3;
+        return this.isMuted;
     }
 
     resume() {
@@ -286,7 +293,7 @@ function animate() {
     handleShooting();
 
     // Update powerups
-    powerups.forEach((powerup, index) => {
+    powerups.forEach((powerup) => {
         powerup.update();
         const dx = player.x - powerup.x;
         const dy = player.y - powerup.y;
@@ -297,22 +304,22 @@ function animate() {
             if (powerup.type === 'spread') activePowerups.spread = 600; // 10 seconds
             if (powerup.type === 'rapid') activePowerups.rapid = 600;
             if (powerup.type === 'shield') activePowerups.shield = true;
-            powerups.splice(index, 1);
+            powerup.markedForDeletion = true;
             updatePowerupUI();
         }
     });
 
     // Update particles
-    particles.forEach((particle, index) => {
+    particles.forEach((particle) => {
         if (particle.alpha <= 0) {
-            particles.splice(index, 1);
+            particle.markedForDeletion = true;
         } else {
             particle.update();
         }
     });
 
     // Update enemy projectiles
-    enemyProjectiles.forEach((projectile, index) => {
+    enemyProjectiles.forEach((projectile) => {
         projectile.update();
 
         // Remove off-screen projectiles
@@ -320,7 +327,7 @@ function animate() {
             projectile.x - projectile.radius > canvas.width ||
             projectile.y + projectile.radius < 0 ||
             projectile.y - projectile.radius > canvas.height) {
-            enemyProjectiles.splice(index, 1);
+            projectile.markedForDeletion = true;
             return;
         }
 
@@ -335,7 +342,7 @@ function animate() {
                 activePowerups.shield = false;
                 player.invulnerable = true;
                 setTimeout(() => player.invulnerable = false, 1000);
-                enemyProjectiles.splice(index, 1);
+                projectile.markedForDeletion = true;
                 updatePowerupUI();
                 sounds.damage();
                 return;
@@ -347,7 +354,7 @@ function animate() {
     });
 
     // Update player projectiles
-    projectiles.forEach((projectile, index) => {
+    projectiles.forEach((projectile) => {
         projectile.update();
 
         // Remove off-screen projectiles
@@ -355,14 +362,14 @@ function animate() {
             projectile.x - projectile.radius > canvas.width ||
             projectile.y + projectile.radius < 0 ||
             projectile.y - projectile.radius > canvas.height) {
-            projectiles.splice(index, 1);
+            projectile.markedForDeletion = true;
         }
     });
 
     drawJoysticks();
 
     // Update enemies
-    enemies.forEach((enemy, enemyIndex) => {
+    enemies.forEach((enemy) => {
         enemy.update();
 
         // Collision with player
@@ -403,7 +410,7 @@ function animate() {
         if (distSqToPlayer < radiiSumPlayer * radiiSumPlayer) {
             if (enemy.type === 'bomber') {
                 triggerBomberExplosion(enemy.x, enemy.y);
-                enemies.splice(enemyIndex, 1);
+                enemy.markedForDeletion = true;
                 return;
             }
 
@@ -412,7 +419,7 @@ function animate() {
                 activePowerups.shield = false;
                 player.invulnerable = true;
                 setTimeout(() => player.invulnerable = false, 1000);
-                enemies.splice(enemyIndex, 1);
+                enemy.markedForDeletion = true;
                 updatePowerupUI();
                 sounds.damage();
                 return;
@@ -423,7 +430,9 @@ function animate() {
         }
 
         // Collision with projectiles
-        projectiles.forEach((projectile, projectileIndex) => {
+        projectiles.forEach((projectile) => {
+            if (enemy.markedForDeletion || projectile.markedForDeletion) return;
+
             const dxProj = projectile.x - enemy.x;
             const dyProj = projectile.y - enemy.y;
             const distSqToProj = dxProj * dxProj + dyProj * dyProj;
@@ -446,10 +455,8 @@ function animate() {
                 }
 
                 // Remove enemy and projectile
-                setTimeout(() => {
-                    enemies.splice(enemyIndex, 1);
-                    projectiles.splice(projectileIndex, 1);
-                }, 0);
+                enemy.markedForDeletion = true;
+                projectile.markedForDeletion = true;
 
                 // Update score
                 score += enemy.type === 'shooter' ? 150 : 100;
@@ -457,6 +464,12 @@ function animate() {
             }
         });
     });
+
+    powerups = powerups.filter(p => !p.markedForDeletion);
+    particles = particles.filter(p => !p.markedForDeletion);
+    enemyProjectiles = enemyProjectiles.filter(p => !p.markedForDeletion);
+    projectiles = projectiles.filter(p => !p.markedForDeletion);
+    enemies = enemies.filter(e => !e.markedForDeletion);
 }
 
 function gameOver() {
@@ -502,6 +515,15 @@ document.addEventListener('fullscreenchange', () => {
         fullscreenBtn.setAttribute('aria-pressed', 'false');
     }
 });
+
+const muteBtn = document.getElementById('mute-btn');
+if (muteBtn) { // wrap in if to make testing easier if it's missing
+    muteBtn.addEventListener('click', () => {
+        const isMuted = sounds.toggleMute();
+        muteBtn.textContent = isMuted ? 'Unmute' : 'Mute';
+        muteBtn.setAttribute('aria-pressed', isMuted ? 'true' : 'false');
+    });
+}
 
 window.addEventListener('keydown', (e) => {
     if (Object.prototype.hasOwnProperty.call(keys, e.key.toLowerCase())) {
