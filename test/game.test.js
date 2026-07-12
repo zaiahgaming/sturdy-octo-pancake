@@ -65,4 +65,20 @@ describe('Game UX Improvements', () => {
         restartBtn.click();
         expect(document.activeElement).to.equal(canvas);
     });
+
+    it('should toggle fullscreen button text and aria-pressed on fullscreenchange', () => {
+        const fullscreenBtn = document.getElementById('fullscreen-btn');
+
+        // Simulate entering fullscreen
+        document.fullscreenElement = document.documentElement;
+        document.dispatchEvent(new window.Event('fullscreenchange'));
+        expect(fullscreenBtn.innerText).to.equal('Exit Fullscreen');
+        expect(fullscreenBtn.getAttribute('aria-pressed')).to.equal('true');
+
+        // Simulate exiting fullscreen
+        document.fullscreenElement = null;
+        document.dispatchEvent(new window.Event('fullscreenchange'));
+        expect(fullscreenBtn.innerText).to.equal('Fullscreen');
+        expect(fullscreenBtn.getAttribute('aria-pressed')).to.equal('false');
+    });
 });

@@ -7,3 +7,6 @@
 ## 2024-11-06 - [Canvas Focus UX]
 **Learning:** Requiring users to click the canvas before keyboard inputs register is poor UX. Adding tabindex and programmatically focusing the canvas on start/restart improves keyboard accessibility.
 **Action:** Added tabindex="0" and aria-label to the canvas, and called canvas.focus() in the start and restart button click handlers.
+## 2026-07-12 - [Accessible Fullscreen Toggle]
+**Learning:** Adding dynamic `aria-pressed` states and dynamic text to toggle buttons like a Fullscreen button helps screen reader users understand the button's purpose and its current state. Relying on visual changes alone makes it opaque.
+**Action:** Always add dynamic text and `aria-pressed` attributes to buttons that function as toggles.
