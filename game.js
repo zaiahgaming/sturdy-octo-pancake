@@ -890,24 +890,28 @@ class Enemy {
     update() {
         this.draw();
 
+        // Optimization: Replaced Math.atan2, Math.cos, and Math.sin with basic vector normalization
+        // This avoids expensive trigonometric function calls in the hot path of the update loop
         // Calculate direction to player
-        const angle = Math.atan2(player.y - this.y, player.x - this.x);
+        const dirX = player.x - this.x;
+        const dirY = player.y - this.y;
+        const dist = Math.sqrt(dirX * dirX + dirY * dirY);
+        const nx = dist === 0 ? 0 : dirX / dist;
+        const ny = dist === 0 ? 0 : dirY / dist;
 
         if (this.type === 'chaser' || this.type === 'bomber') {
             // Move towards player
-            this.x += Math.cos(angle) * this.speed;
-            this.y += Math.sin(angle) * this.speed;
+            this.x += nx * this.speed;
+            this.y += ny * this.speed;
         } else if (this.type === 'shooter') {
             // Keep some distance from player
-            const dx = player.x - this.x;
-            const dy = player.y - this.y;
-            const distSq = dx * dx + dy * dy;
+            const distSq = dirX * dirX + dirY * dirY;
             if (distSq > 40000) { // 200 * 200
-                this.x += Math.cos(angle) * this.speed;
-                this.y += Math.sin(angle) * this.speed;
+                this.x += nx * this.speed;
+                this.y += ny * this.speed;
             } else if (distSq < 22500) { // 150 * 150
-                this.x -= Math.cos(angle) * this.speed;
-                this.y -= Math.sin(angle) * this.speed;
+                this.x -= nx * this.speed;
+                this.y -= ny * this.speed;
             }
 
             // Shoot at player
@@ -915,8 +919,8 @@ class Enemy {
             if (currentTime - this.lastShotTime > 1500) {
                 const speed = 4;
                 const velocity = {
-                    x: Math.cos(angle) * speed,
-                    y: Math.sin(angle) * speed
+                    x: nx * speed,
+                    y: ny * speed
                 };
 
                 enemyProjectiles.push(new Projectile(
