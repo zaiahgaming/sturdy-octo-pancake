@@ -10,3 +10,6 @@
 ## 2026-07-12 - [Accessible Fullscreen Toggle]
 **Learning:** Adding dynamic `aria-pressed` states and dynamic text to toggle buttons like a Fullscreen button helps screen reader users understand the button's purpose and its current state. Relying on visual changes alone makes it opaque.
 **Action:** Always add dynamic text and `aria-pressed` attributes to buttons that function as toggles.
+## 2024-11-20 - [Semantic Landmarks & Dialog Descriptions]
+**Learning:** Using a `<main>` landmark instead of a generic `<div>` significantly improves navigation for screen reader users by identifying the primary content area. Furthermore, modal dialogs (like Start/Game Over screens) should use `aria-describedby` to link the dialog element to the paragraph containing its primary descriptive text or instructions, providing vital context.
+**Action:** Replaced the root `<div id="game-container">` with `<main>` and added `aria-describedby` attributes to both dialogs, pointing to the IDs of their respective instructional text paragraphs.
