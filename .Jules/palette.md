@@ -10,3 +10,6 @@
 ## 2026-07-12 - [Accessible Fullscreen Toggle]
 **Learning:** Adding dynamic `aria-pressed` states and dynamic text to toggle buttons like a Fullscreen button helps screen reader users understand the button's purpose and its current state. Relying on visual changes alone makes it opaque.
 **Action:** Always add dynamic text and `aria-pressed` attributes to buttons that function as toggles.
+## 2024-11-12 - [Screen Reader Canvas Control]
+**Learning:** For interactive canvases to work correctly with screen readers, they need `role="application"`. Without this, screen readers intercept keyboard events (like WASD or arrow keys) for document navigation instead of passing them to the game. Furthermore, using `aria-describedby` directly on the canvas to point to the game's instructions provides immediate context upon focus without needing to navigate the rest of the DOM.
+**Action:** When making accessible web games with a `<canvas>`, apply `role="application"` and use `aria-describedby` to link to the game's control instructions.
