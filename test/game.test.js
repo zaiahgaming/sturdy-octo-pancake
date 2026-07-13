@@ -81,4 +81,25 @@ describe('Game UX Improvements', () => {
         expect(fullscreenBtn.innerText).to.equal('Fullscreen');
         expect(fullscreenBtn.getAttribute('aria-pressed')).to.equal('false');
     });
+
+    it('should have a main landmark for screen readers', () => {
+        const mainContainer = document.querySelector('main#game-container');
+        expect(mainContainer).to.not.be.null;
+    });
+
+    it('should have aria-describedby for start screen dialog', () => {
+        const startScreen = document.getElementById('start-screen');
+        const descId = startScreen.getAttribute('aria-describedby');
+        expect(descId).to.equal('start-screen-desc');
+        const descEl = document.getElementById(descId);
+        expect(descEl).to.not.be.null;
+    });
+
+    it('should have aria-describedby for game over dialog', () => {
+        const gameOverScreen = document.getElementById('game-over');
+        const descId = gameOverScreen.getAttribute('aria-describedby');
+        expect(descId).to.equal('game-over-desc');
+        const descEl = document.getElementById(descId);
+        expect(descEl).to.not.be.null;
+    });
 });
