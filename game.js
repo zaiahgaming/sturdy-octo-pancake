@@ -14,6 +14,11 @@ let animationId;
 let gameActive = false;
 let score = 0;
 
+let prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+window.matchMedia('(prefers-reduced-motion: reduce)').addEventListener('change', (e) => {
+    prefersReducedMotion = e.matches;
+});
+
 
 // Virtual Joystick state
 const joystickLeft = { active: false, id: null, originX: 0, originY: 0, x: 0, y: 0 };
@@ -143,7 +148,7 @@ class Powerup {
 
     draw() {
         this.pulse += 0.1;
-        const currentRadius = this.radius + Math.sin(this.pulse) * 2;
+        const currentRadius = prefersReducedMotion ? this.radius : this.radius + Math.sin(this.pulse) * 2;
 
         ctx.beginPath();
         ctx.arc(this.x, this.y, currentRadius, 0, Math.PI * 2);
@@ -201,6 +206,7 @@ let screenShake = {
 };
 
 function triggerShake(intensity, duration) {
+    if (prefersReducedMotion) return;
     screenShake.active = true;
     screenShake.intensity = intensity;
     screenShake.duration = duration;
@@ -236,7 +242,9 @@ function drawBackground() {
     ctx.lineWidth = 1;
 
     const gridSize = 50;
-    gridOffset = (gridOffset + 0.5) % gridSize;
+    if (!prefersReducedMotion) {
+        gridOffset = (gridOffset + 0.5) % gridSize;
+    }
 
     ctx.beginPath();
     for(let x = 0; x < canvas.width; x += gridSize) {

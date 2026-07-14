@@ -13,3 +13,6 @@
 ## 2024-11-20 - Adding aria-describedby for Dialogs
 **Learning:** For accessibility in custom dialogs (e.g., `#game-over`, `#start-screen`), pairing `aria-labelledby` with `aria-describedby` ensures screen readers announce critical internal context (like instructions or scores) upon opening.
 **Action:** Always map the ID of a descriptive `<p>` or `<div>` to a dialog's `aria-describedby` attribute to improve screen reader context.
+## 2024-11-20 - Respecting prefers-reduced-motion
+**Learning:** Animations like screen shakes, pulsing objects, and scrolling backgrounds can trigger nausea or discomfort for users with vestibular disorders. It is crucial to respect the user's OS-level motion preferences using the `prefers-reduced-motion` media query in CSS and `window.matchMedia` in JavaScript.
+**Action:** Always check for `window.matchMedia('(prefers-reduced-motion: reduce)').matches` before executing non-essential decorative animations or screen shakes, and provide a static alternative or disable the effect when true.

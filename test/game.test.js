@@ -42,6 +42,20 @@ describe('Game UX Improvements', () => {
             clearTimeout(id);
         };
 
+        // Mock matchMedia
+        window.matchMedia = window.matchMedia || function(query) {
+            return {
+                matches: false,
+                media: query,
+                onchange: null,
+                addListener: function() {},
+                removeListener: function() {},
+                addEventListener: function() {},
+                removeEventListener: function() {},
+                dispatchEvent: function() {}
+            };
+        };
+
         const scriptEl = document.createElement('script');
         scriptEl.textContent = js;
         document.body.appendChild(scriptEl);
@@ -80,5 +94,34 @@ describe('Game UX Improvements', () => {
         document.dispatchEvent(new window.Event('fullscreenchange'));
         expect(fullscreenBtn.innerText).to.equal('Fullscreen');
         expect(fullscreenBtn.getAttribute('aria-pressed')).to.equal('false');
+    });
+
+    describe('prefers-reduced-motion', () => {
+        let originalMatchMedia;
+        beforeEach(() => {
+            originalMatchMedia = window.matchMedia;
+            window.matchMedia = (query) => ({
+                matches: query === '(prefers-reduced-motion: reduce)',
+                media: query,
+                onchange: null,
+                addListener: () => {},
+                removeListener: () => {},
+                addEventListener: () => {},
+                removeEventListener: () => {},
+                dispatchEvent: () => {},
+            });
+            // Re-evaluate init block to pick up matchMedia mock
+            window.eval('prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches');
+        });
+
+        afterEach(() => {
+            window.matchMedia = originalMatchMedia;
+        });
+
+        it('should bypass screen shake when true', () => {
+             window.eval('triggerShake(10, 100)');
+             const active = window.eval('screenShake.active');
+             expect(active).to.be.false;
+        });
     });
 });
