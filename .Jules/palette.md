@@ -10,3 +10,6 @@
 ## 2026-07-12 - [Accessible Fullscreen Toggle]
 **Learning:** Adding dynamic `aria-pressed` states and dynamic text to toggle buttons like a Fullscreen button helps screen reader users understand the button's purpose and its current state. Relying on visual changes alone makes it opaque.
 **Action:** Always add dynamic text and `aria-pressed` attributes to buttons that function as toggles.
+## 2024-05-24 - [Accessible Modal Descriptions]
+**Learning:** When using custom dialogs with `role="dialog"`, screen readers announce the element referenced by `aria-labelledby`. However, critical context within the modal (like instructions or a final score) might not be announced automatically upon opening.
+**Action:** Always pair `aria-labelledby` with `aria-describedby` on custom dialogs to point to the paragraph or container holding the descriptive text, ensuring a complete context is read out to the user.
