@@ -890,24 +890,31 @@ class Enemy {
     update() {
         this.draw();
 
-        // Calculate direction to player
-        const angle = Math.atan2(player.y - this.y, player.x - this.x);
+        // Calculate direction to player using vector normalization for performance
+        const dx = player.x - this.x;
+        const dy = player.y - this.y;
+        const distSq = dx * dx + dy * dy;
+        const dist = Math.sqrt(distSq);
+
+        let normX = 0;
+        let normY = 0;
+        if (dist > 0) {
+            normX = dx / dist;
+            normY = dy / dist;
+        }
 
         if (this.type === 'chaser' || this.type === 'bomber') {
             // Move towards player
-            this.x += Math.cos(angle) * this.speed;
-            this.y += Math.sin(angle) * this.speed;
+            this.x += normX * this.speed;
+            this.y += normY * this.speed;
         } else if (this.type === 'shooter') {
             // Keep some distance from player
-            const dx = player.x - this.x;
-            const dy = player.y - this.y;
-            const distSq = dx * dx + dy * dy;
             if (distSq > 40000) { // 200 * 200
-                this.x += Math.cos(angle) * this.speed;
-                this.y += Math.sin(angle) * this.speed;
+                this.x += normX * this.speed;
+                this.y += normY * this.speed;
             } else if (distSq < 22500) { // 150 * 150
-                this.x -= Math.cos(angle) * this.speed;
-                this.y -= Math.sin(angle) * this.speed;
+                this.x -= normX * this.speed;
+                this.y -= normY * this.speed;
             }
 
             // Shoot at player
@@ -915,8 +922,8 @@ class Enemy {
             if (currentTime - this.lastShotTime > 1500) {
                 const speed = 4;
                 const velocity = {
-                    x: Math.cos(angle) * speed,
-                    y: Math.sin(angle) * speed
+                    x: normX * speed,
+                    y: normY * speed
                 };
 
                 enemyProjectiles.push(new Projectile(
