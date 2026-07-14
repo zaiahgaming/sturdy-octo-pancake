@@ -28,5 +28,10 @@
     "chai": "^6.2.2",
     "jsdom": "^29.1.1",
     "mocha": "^11.7.6"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "canvas"
+    ]
   }
 }
