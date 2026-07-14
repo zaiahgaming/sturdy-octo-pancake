@@ -11,7 +11,7 @@ describe('Game UX Improvements', () => {
     let document;
 
     beforeEach(() => {
-        dom = new JSDOM(html, { runScripts: 'dangerously' });
+        dom = new JSDOM(html, { runScripts: 'dangerously', url: 'http://localhost/' });
         window = dom.window;
         document = window.document;
 

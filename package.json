@@ -18,6 +18,11 @@
     "url": "https://github.com/zaiahgaming/sturdy-octo-pancake/issues"
   },
   "homepage": "https://github.com/zaiahgaming/sturdy-octo-pancake#readme",
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "canvas"
+    ]
+  },
   "devDependencies": {
     "canvas": "^3.2.3",
     "chai": "^6.2.2",
