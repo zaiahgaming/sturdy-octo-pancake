@@ -14,6 +14,13 @@ let animationId;
 let gameActive = false;
 let score = 0;
 
+function announce(message) {
+    const announcer = document.getElementById('game-announcer');
+    if (announcer) {
+        announcer.textContent = message;
+    }
+}
+
 let prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 window.matchMedia('(prefers-reduced-motion: reduce)').addEventListener('change', (e) => {
     prefersReducedMotion = e.matches;
@@ -302,9 +309,9 @@ function animate() {
         const radii = powerup.radius + player.radius;
         if (distSq < radii * radii) {
             sounds.powerup();
-            if (powerup.type === 'spread') activePowerups.spread = 600; // 10 seconds
-            if (powerup.type === 'rapid') activePowerups.rapid = 600;
-            if (powerup.type === 'shield') activePowerups.shield = true;
+            if (powerup.type === 'spread') { activePowerups.spread = 600; announce('Spread Shot acquired'); } // 10 seconds
+            if (powerup.type === 'rapid') { activePowerups.rapid = 600; announce('Rapid Fire acquired'); }
+            if (powerup.type === 'shield') { activePowerups.shield = true; announce('Shield acquired'); }
             powerups.splice(index, 1);
             updatePowerupUI();
         }
@@ -341,6 +348,7 @@ function animate() {
             if (player.invulnerable) return;
             if (activePowerups.shield) {
                 activePowerups.shield = false;
+                announce('Shield depleted');
                 player.invulnerable = true;
                 setTimeout(() => player.invulnerable = false, 1000);
                 enemyProjectiles.splice(index, 1);
@@ -395,6 +403,7 @@ function animate() {
                 if (player.invulnerable) return;
                 if (activePowerups.shield) {
                     activePowerups.shield = false;
+                    announce('Shield depleted');
                     player.invulnerable = true;
                     setTimeout(() => player.invulnerable = false, 1000);
                     updatePowerupUI();
@@ -418,6 +427,7 @@ function animate() {
             if (player.invulnerable) return;
             if (activePowerups.shield) {
                 activePowerups.shield = false;
+                announce('Shield depleted');
                 player.invulnerable = true;
                 setTimeout(() => player.invulnerable = false, 1000);
                 enemies.splice(enemyIndex, 1);
@@ -612,10 +622,12 @@ function updatePowerupTimers() {
     if (activePowerups.spread > 0) {
         activePowerups.spread--;
         if (activePowerups.spread % 60 === 0) uiNeedsUpdate = true;
+        if (activePowerups.spread === 0) announce('Spread Shot expired');
     }
     if (activePowerups.rapid > 0) {
         activePowerups.rapid--;
         if (activePowerups.rapid % 60 === 0) uiNeedsUpdate = true;
+        if (activePowerups.rapid === 0) announce('Rapid Fire expired');
     }
     if (uiNeedsUpdate) updatePowerupUI();
 }
