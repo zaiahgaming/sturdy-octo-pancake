@@ -16,3 +16,6 @@
 ## 2024-11-20 - Respecting prefers-reduced-motion
 **Learning:** Animations like screen shakes, pulsing objects, and scrolling backgrounds can trigger nausea or discomfort for users with vestibular disorders. It is crucial to respect the user's OS-level motion preferences using the `prefers-reduced-motion` media query in CSS and `window.matchMedia` in JavaScript.
 **Action:** Always check for `window.matchMedia('(prefers-reduced-motion: reduce)').matches` before executing non-essential decorative animations or screen shakes, and provide a static alternative or disable the effect when true.
+## 2025-02-13 - Avoid aria-live on frequently updating text
+**Learning:** Placing `aria-live="polite"` on a container that updates frequently (like a countdown timer) causes severe spam for screen reader users, disrupting other important announcements.
+**Action:** Use `aria-hidden="true"` on frequently updating UI text like timers, and instead use a visually hidden, dedicated `aria-live` region to announce only meaningful state changes (e.g., when the timer starts or expires).

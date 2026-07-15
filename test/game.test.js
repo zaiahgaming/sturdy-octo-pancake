@@ -124,4 +124,20 @@ describe('Game UX Improvements', () => {
              expect(active).to.be.false;
         });
     });
+
+    describe('Powerup Accessibility Announcements', () => {
+        it('should not use aria-live on the active-powerups container', () => {
+            const container = document.getElementById('active-powerups');
+            expect(container.getAttribute('aria-hidden')).to.equal('true');
+            expect(container.hasAttribute('aria-live')).to.be.false;
+        });
+
+        it('should update the game-announcer text content when announce is called', () => {
+            const announcer = document.getElementById('game-announcer');
+            expect(announcer.getAttribute('aria-live')).to.equal('polite');
+
+            window.eval('announce("Test Announcement")');
+            expect(announcer.textContent).to.equal('Test Announcement');
+        });
+    });
 });
