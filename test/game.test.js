@@ -124,4 +124,34 @@ describe('Game UX Improvements', () => {
              expect(active).to.be.false;
         });
     });
+
+    describe('Powerup Announcer', () => {
+        beforeEach(() => {
+            window.eval('init()');
+            window.eval('gameActive = true;');
+        });
+
+        it('should announce when a shield is acquired and depleted', () => {
+            window.eval('powerups.push(new Powerup(player.x, player.y, {type: "shield", color: "#00f", text: "Shield"}))');
+            window.eval('animate()');
+            const announcer = document.getElementById('powerup-announcer');
+            expect(announcer.textContent).to.equal('Shield Acquired');
+
+            // Spawn an enemy directly on player to deplete shield
+            window.eval('enemies.push(new Enemy(player.x, player.y, 15, "#f00", 1, "chaser"))');
+            window.eval('animate()');
+
+            expect(announcer.textContent).to.equal('Shield Depleted');
+        });
+
+        it('should announce when spread shot expires', () => {
+             window.eval('activePowerups.spread = 2');
+             window.eval('updatePowerupTimers()');
+             const announcer = document.getElementById('powerup-announcer');
+             expect(announcer.textContent).to.not.equal('Spread Shot Expired');
+
+             window.eval('updatePowerupTimers()');
+             expect(announcer.textContent).to.equal('Spread Shot Expired');
+        });
+    });
 });
