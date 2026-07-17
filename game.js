@@ -178,21 +178,21 @@ function updatePowerupUI() {
         const el = document.createElement('div');
         el.className = 'powerup-indicator';
         el.style.color = '#ff0';
-        el.innerText = `Spread: ${Math.ceil(activePowerups.spread / 60)}s`;
+        el.textContent = `Spread: ${Math.ceil(activePowerups.spread / 60)}s`;
         container.appendChild(el);
     }
     if (activePowerups.rapid > 0) {
         const el = document.createElement('div');
         el.className = 'powerup-indicator';
         el.style.color = '#0f0';
-        el.innerText = `Rapid: ${Math.ceil(activePowerups.rapid / 60)}s`;
+        el.textContent = `Rapid: ${Math.ceil(activePowerups.rapid / 60)}s`;
         container.appendChild(el);
     }
     if (activePowerups.shield) {
         const el = document.createElement('div');
         el.className = 'powerup-indicator';
         el.style.color = '#00f';
-        el.innerText = `Shield Active`;
+        el.textContent = `Shield Active`;
         container.appendChild(el);
     }
 }
@@ -260,7 +260,7 @@ function drawBackground() {
 
 function init() {
     score = 0;
-    document.getElementById('score').innerText = `Score: ${score}`;
+    document.getElementById('score').textContent = `Score: ${score}`;
 
     player = new Player(canvas.width / 2, canvas.height / 2);
 
@@ -461,7 +461,7 @@ function animate() {
 
                 // Update score
                 score += enemy.type === 'shooter' ? 150 : 100;
-                document.getElementById('score').innerText = `Score: ${score}`;
+                document.getElementById('score').textContent = `Score: ${score}`;
             }
         });
     });
@@ -481,7 +481,7 @@ function gameOver() {
 
     setTimeout(() => {
         document.getElementById('game-over').style.display = 'block';
-        document.getElementById('final-score').innerText = score;
+        document.getElementById('final-score').textContent = score;
         document.getElementById('restart-btn').focus();
     }, 500);
 }
@@ -503,10 +503,10 @@ fullscreenBtn.addEventListener('click', () => {
 
 document.addEventListener('fullscreenchange', () => {
     if (document.fullscreenElement) {
-        fullscreenBtn.innerText = 'Exit Fullscreen';
+        fullscreenBtn.textContent = 'Exit Fullscreen';
         fullscreenBtn.setAttribute('aria-pressed', 'true');
     } else {
-        fullscreenBtn.innerText = 'Fullscreen';
+        fullscreenBtn.textContent = 'Fullscreen';
         fullscreenBtn.setAttribute('aria-pressed', 'false');
     }
 });
