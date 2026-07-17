@@ -124,4 +124,31 @@ describe('Game UX Improvements', () => {
              expect(active).to.be.false;
         });
     });
+
+    describe('Powerup Announcer', () => {
+        beforeEach(() => {
+            window.eval('init()');
+        });
+
+        it('should announce when a spread powerup is acquired and expires', () => {
+            // Setup a spread powerup exactly on the player to force collision
+            window.eval(`
+                powerups.push(new Powerup(player.x, player.y, { type: 'spread', color: '#ff0', text: 'Spread Shot' }));
+            `);
+
+            // Run animate once to trigger collision
+            window.eval('gameActive = true; animate();');
+
+            const announcer = document.getElementById('powerup-announcer');
+            expect(announcer.textContent).to.equal('Spread Shot powerup acquired!');
+
+            // Fast forward spread timer to exactly 1 tick before expiration
+            window.eval(`
+                activePowerups.spread = 1;
+                updatePowerupTimers();
+            `);
+
+            expect(announcer.textContent).to.equal('Spread Shot powerup expired.');
+        });
+    });
 });
