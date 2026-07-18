@@ -96,6 +96,12 @@ describe('Game UX Improvements', () => {
         expect(fullscreenBtn.getAttribute('aria-pressed')).to.equal('false');
     });
 
+    it('should announce powerup state changes via sr-only live region', () => {
+        const announcer = document.getElementById('powerup-announcer');
+        window.eval('announce("Spread Shot Active")');
+        expect(announcer.textContent).to.equal('Spread Shot Active');
+    });
+
     describe('prefers-reduced-motion', () => {
         let originalMatchMedia;
         beforeEach(() => {
