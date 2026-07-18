@@ -16,3 +16,6 @@
 ## 2024-11-20 - Respecting prefers-reduced-motion
 **Learning:** Animations like screen shakes, pulsing objects, and scrolling backgrounds can trigger nausea or discomfort for users with vestibular disorders. It is crucial to respect the user's OS-level motion preferences using the `prefers-reduced-motion` media query in CSS and `window.matchMedia` in JavaScript.
 **Action:** Always check for `window.matchMedia('(prefers-reduced-motion: reduce)').matches` before executing non-essential decorative animations or screen shakes, and provide a static alternative or disable the effect when true.
+## 2024-11-20 - Powerup Announcement Accessibility
+**Learning:** For frequently updating UI elements like countdown timers, using `aria-live="polite"` directly on the container causes screen reader spam. It is better to hide the frequently updating element with `aria-hidden="true"` and use a dedicated, visually hidden `.sr-only` region to announce only meaningful state changes (e.g., when a timer starts or depletes).
+**Action:** When using a visually hidden `aria-live` region for accessibility announcements, clear its `textContent` after a brief delay (e.g., using `setTimeout`) to ensure that consecutive identical messages are correctly re-announced by screen readers.

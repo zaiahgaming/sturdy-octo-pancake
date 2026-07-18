@@ -96,6 +96,19 @@ describe('Game UX Improvements', () => {
         expect(fullscreenBtn.getAttribute('aria-pressed')).to.equal('false');
     });
 
+    describe('Powerup Accessibility', () => {
+        it('should have aria-hidden on active-powerups container', () => {
+            const container = document.getElementById('active-powerups');
+            expect(container.getAttribute('aria-hidden')).to.equal('true');
+        });
+
+        it('should announce powerup collection via sr-only region', () => {
+            const announcer = document.getElementById('powerup-announcer');
+            window.eval('announcePowerup("Spread Shot active")');
+            expect(announcer.textContent).to.equal('Spread Shot active');
+        });
+    });
+
     describe('prefers-reduced-motion', () => {
         let originalMatchMedia;
         beforeEach(() => {
