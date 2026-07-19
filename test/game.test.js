@@ -124,4 +124,28 @@ describe('Game UX Improvements', () => {
              expect(active).to.be.false;
         });
     });
+
+    describe('Accessibility: Powerup Announcements', () => {
+        it('should have aria-hidden on active-powerups container', () => {
+            const container = document.getElementById('active-powerups');
+            expect(container.getAttribute('aria-hidden')).to.equal('true');
+        });
+
+        it('should have sr-only class and aria-live on announcer', () => {
+            const announcer = document.getElementById('announcer');
+            expect(announcer.classList.contains('sr-only')).to.be.true;
+            expect(announcer.getAttribute('aria-live')).to.equal('polite');
+        });
+
+        it('should announce message and clear it after delay', (done) => {
+            const announcer = document.getElementById('announcer');
+            window.eval('announce("Test Message")');
+            expect(announcer.textContent).to.equal('Test Message');
+
+            setTimeout(() => {
+                expect(announcer.textContent).to.equal('');
+                done();
+            }, 1100);
+        });
+    });
 });
