@@ -96,6 +96,16 @@ describe('Game UX Improvements', () => {
         expect(fullscreenBtn.getAttribute('aria-pressed')).to.equal('false');
     });
 
+    it('should set textContent of announcer and clear it after delay when announce is called', (done) => {
+        window.eval('announce("Test message")');
+        const announcer = document.getElementById('announcer');
+        expect(announcer.textContent).to.equal('Test message');
+        setTimeout(() => {
+            expect(announcer.textContent).to.equal('');
+            done();
+        }, 1100);
+    });
+
     describe('prefers-reduced-motion', () => {
         let originalMatchMedia;
         beforeEach(() => {
