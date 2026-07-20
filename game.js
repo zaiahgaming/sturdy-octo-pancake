@@ -170,6 +170,18 @@ class Powerup {
     }
 }
 
+function announce(message) {
+    const announcer = document.getElementById('announcer');
+    if (announcer) {
+        announcer.textContent = message;
+        setTimeout(() => {
+            if (announcer.textContent === message) {
+                announcer.textContent = '';
+            }
+        }, 1000);
+    }
+}
+
 function updatePowerupUI() {
     const container = document.getElementById('active-powerups');
     container.innerHTML = '';
@@ -302,9 +314,9 @@ function animate() {
         const radii = powerup.radius + player.radius;
         if (distSq < radii * radii) {
             sounds.powerup();
-            if (powerup.type === 'spread') activePowerups.spread = 600; // 10 seconds
-            if (powerup.type === 'rapid') activePowerups.rapid = 600;
-            if (powerup.type === 'shield') activePowerups.shield = true;
+            if (powerup.type === 'spread') { activePowerups.spread = 600; announce('Spread shot acquired'); }
+            if (powerup.type === 'rapid') { activePowerups.rapid = 600; announce('Rapid fire acquired'); }
+            if (powerup.type === 'shield') { activePowerups.shield = true; announce('Shield acquired'); }
             powerups.splice(index, 1);
             updatePowerupUI();
         }
@@ -346,6 +358,7 @@ function animate() {
                 enemyProjectiles.splice(index, 1);
                 updatePowerupUI();
                 sounds.damage();
+                announce('Shield depleted');
                 return;
             }
             sounds.damage();
@@ -399,6 +412,7 @@ function animate() {
                     setTimeout(() => player.invulnerable = false, 1000);
                     updatePowerupUI();
                     sounds.damage();
+                    announce('Shield depleted');
                     return;
                 }
                 sounds.damage();
@@ -423,6 +437,7 @@ function animate() {
                 enemies.splice(enemyIndex, 1);
                 updatePowerupUI();
                 sounds.damage();
+                announce('Shield depleted');
                 return;
             }
             sounds.damage();
