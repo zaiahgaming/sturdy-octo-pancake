@@ -14,6 +14,14 @@ let animationId;
 let gameActive = false;
 let score = 0;
 
+function announce(message) {
+    const announcer = document.getElementById('announcer');
+    if (announcer) {
+        announcer.textContent = message;
+        setTimeout(() => { announcer.textContent = ''; }, 1000);
+    }
+}
+
 let prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 window.matchMedia('(prefers-reduced-motion: reduce)').addEventListener('change', (e) => {
     prefersReducedMotion = e.matches;
@@ -305,6 +313,7 @@ function animate() {
             if (powerup.type === 'spread') activePowerups.spread = 600; // 10 seconds
             if (powerup.type === 'rapid') activePowerups.rapid = 600;
             if (powerup.type === 'shield') activePowerups.shield = true;
+            announce(powerup.text + ' acquired');
             powerups.splice(index, 1);
             updatePowerupUI();
         }
@@ -344,6 +353,7 @@ function animate() {
                 player.invulnerable = true;
                 setTimeout(() => player.invulnerable = false, 1000);
                 enemyProjectiles.splice(index, 1);
+                announce('Shield depleted');
                 updatePowerupUI();
                 sounds.damage();
                 return;
@@ -397,6 +407,7 @@ function animate() {
                     activePowerups.shield = false;
                     player.invulnerable = true;
                     setTimeout(() => player.invulnerable = false, 1000);
+                    announce('Shield depleted');
                     updatePowerupUI();
                     sounds.damage();
                     return;
@@ -421,6 +432,7 @@ function animate() {
                 player.invulnerable = true;
                 setTimeout(() => player.invulnerable = false, 1000);
                 enemies.splice(enemyIndex, 1);
+                announce('Shield depleted');
                 updatePowerupUI();
                 sounds.damage();
                 return;
