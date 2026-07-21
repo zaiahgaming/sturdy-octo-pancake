@@ -14,6 +14,18 @@ let animationId;
 let gameActive = false;
 let score = 0;
 
+function announce(message) {
+    const announcer = document.getElementById('announcer');
+    if (announcer) {
+        announcer.textContent = message;
+        setTimeout(() => {
+            if (announcer.textContent === message) {
+                announcer.textContent = '';
+            }
+        }, 1000);
+    }
+}
+
 let prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 window.matchMedia('(prefers-reduced-motion: reduce)').addEventListener('change', (e) => {
     prefersReducedMotion = e.matches;
@@ -302,9 +314,18 @@ function animate() {
         const radii = powerup.radius + player.radius;
         if (distSq < radii * radii) {
             sounds.powerup();
-            if (powerup.type === 'spread') activePowerups.spread = 600; // 10 seconds
-            if (powerup.type === 'rapid') activePowerups.rapid = 600;
-            if (powerup.type === 'shield') activePowerups.shield = true;
+            if (powerup.type === 'spread') {
+                activePowerups.spread = 600; // 10 seconds
+                announce('Spread Shot collected');
+            }
+            if (powerup.type === 'rapid') {
+                activePowerups.rapid = 600;
+                announce('Rapid Fire collected');
+            }
+            if (powerup.type === 'shield') {
+                activePowerups.shield = true;
+                announce('Shield collected');
+            }
             powerups.splice(index, 1);
             updatePowerupUI();
         }
@@ -346,6 +367,7 @@ function animate() {
                 enemyProjectiles.splice(index, 1);
                 updatePowerupUI();
                 sounds.damage();
+                announce('Shield lost');
                 return;
             }
             sounds.damage();
@@ -399,6 +421,7 @@ function animate() {
                     setTimeout(() => player.invulnerable = false, 1000);
                     updatePowerupUI();
                     sounds.damage();
+                    announce('Shield lost');
                     return;
                 }
                 sounds.damage();
@@ -423,6 +446,7 @@ function animate() {
                 enemies.splice(enemyIndex, 1);
                 updatePowerupUI();
                 sounds.damage();
+                announce('Shield lost');
                 return;
             }
             sounds.damage();
