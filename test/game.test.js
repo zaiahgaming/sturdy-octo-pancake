@@ -80,6 +80,16 @@ describe('Game UX Improvements', () => {
         expect(document.activeElement).to.equal(canvas);
     });
 
+    it('should clear announcer text content after a brief delay', (done) => {
+        const announcer = document.getElementById('announcer');
+        window.eval('announce("Test message")');
+        expect(announcer.textContent).to.equal('Test message');
+        setTimeout(() => {
+            expect(announcer.textContent).to.equal('');
+            done();
+        }, 1100);
+    });
+
     it('should toggle fullscreen button text and aria-pressed on fullscreenchange', () => {
         const fullscreenBtn = document.getElementById('fullscreen-btn');
 
