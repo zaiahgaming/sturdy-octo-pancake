@@ -14,6 +14,14 @@ let animationId;
 let gameActive = false;
 let score = 0;
 
+function announce(message) {
+    const announcer = document.getElementById('announcer');
+    if (announcer) {
+        announcer.textContent = message;
+        setTimeout(() => { announcer.textContent = ''; }, 3000);
+    }
+}
+
 let prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 window.matchMedia('(prefers-reduced-motion: reduce)').addEventListener('change', (e) => {
     prefersReducedMotion = e.matches;
@@ -307,6 +315,7 @@ function animate() {
             if (powerup.type === 'shield') activePowerups.shield = true;
             powerups.splice(index, 1);
             updatePowerupUI();
+            announce(powerup.type + ' acquired');
         }
     });
 
@@ -345,6 +354,7 @@ function animate() {
                 setTimeout(() => player.invulnerable = false, 1000);
                 enemyProjectiles.splice(index, 1);
                 updatePowerupUI();
+                announce('Shield depleted');
                 sounds.damage();
                 return;
             }
@@ -398,6 +408,7 @@ function animate() {
                     player.invulnerable = true;
                     setTimeout(() => player.invulnerable = false, 1000);
                     updatePowerupUI();
+                    announce('Shield depleted');
                     sounds.damage();
                     return;
                 }
@@ -422,6 +433,7 @@ function animate() {
                 setTimeout(() => player.invulnerable = false, 1000);
                 enemies.splice(enemyIndex, 1);
                 updatePowerupUI();
+                announce('Shield depleted');
                 sounds.damage();
                 return;
             }
@@ -611,11 +623,21 @@ function updatePowerupTimers() {
     let uiNeedsUpdate = false;
     if (activePowerups.spread > 0) {
         activePowerups.spread--;
-        if (activePowerups.spread % 60 === 0) uiNeedsUpdate = true;
+        if (activePowerups.spread === 0) {
+            announce('Spread Shot depleted');
+            uiNeedsUpdate = true;
+        } else if (activePowerups.spread % 60 === 0) {
+            uiNeedsUpdate = true;
+        }
     }
     if (activePowerups.rapid > 0) {
         activePowerups.rapid--;
-        if (activePowerups.rapid % 60 === 0) uiNeedsUpdate = true;
+        if (activePowerups.rapid === 0) {
+            announce('Rapid Fire depleted');
+            uiNeedsUpdate = true;
+        } else if (activePowerups.rapid % 60 === 0) {
+            uiNeedsUpdate = true;
+        }
     }
     if (uiNeedsUpdate) updatePowerupUI();
 }
