@@ -124,4 +124,21 @@ describe('Game UX Improvements', () => {
              expect(active).to.be.false;
         });
     });
+
+    describe('Accessibility', () => {
+        let clock;
+        beforeEach(() => {
+            clock = window.setTimeout;
+        });
+        it('should announce message and clear it after timeout', function(done) {
+             this.timeout(5000);
+             window.eval('announce("Test message")');
+             const announcer = document.getElementById('powerup-announcer');
+             expect(announcer.textContent).to.equal('Test message');
+             setTimeout(() => {
+                 expect(announcer.textContent).to.equal('');
+                 done();
+             }, 3100);
+        });
+    });
 });
