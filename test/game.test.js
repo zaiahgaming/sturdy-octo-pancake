@@ -124,4 +124,15 @@ describe('Game UX Improvements', () => {
              expect(active).to.be.false;
         });
     });
+
+    it('should clear announcer text after 3000ms', function(done) {
+        this.timeout(4000);
+        window.eval('announce("Test message")');
+        const announcer = document.getElementById('announcer');
+        expect(announcer.textContent).to.equal('Test message');
+        setTimeout(() => {
+            expect(announcer.textContent).to.equal('');
+            done();
+        }, 3100);
+    });
 });
