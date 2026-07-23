@@ -648,18 +648,25 @@ class Player {
 
         // Draw aim indicator
         ctx.beginPath();
-        let angle = Math.atan2(mouse.y - this.y, mouse.x - this.x);
+        let dx = mouse.x - this.x;
+        let dy = mouse.y - this.y;
 
         if (joystickRight.active) {
-            const dx = joystickRight.x - joystickRight.originX;
-            const dy = joystickRight.y - joystickRight.originY;
-            if (dx * dx + dy * dy > 100) {
-                 angle = Math.atan2(dy, dx);
+            const jdx = joystickRight.x - joystickRight.originX;
+            const jdy = joystickRight.y - joystickRight.originY;
+            if (jdx * jdx + jdy * jdy > 100) {
+                 dx = jdx;
+                 dy = jdy;
             }
         }
 
-        const endX = this.x + Math.cos(angle) * (this.radius + 10);
-        const endY = this.y + Math.sin(angle) * (this.radius + 10);
+        let dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist === 0) { dx = 1; dy = 0; dist = 1; }
+        const nx = dx / dist;
+        const ny = dy / dist;
+
+        const endX = this.x + nx * (this.radius + 10);
+        const endY = this.y + ny * (this.radius + 10);
         ctx.moveTo(this.x, this.y);
         ctx.lineTo(endX, endY);
         ctx.strokeStyle = '#0ff';
@@ -800,11 +807,13 @@ const fireRate = 150; // ms
 
 function handleShooting() {
     let shouldShoot = false;
-    let angle = 0;
+    let dirX = 0;
+    let dirY = 0;
 
     if (mouse.isDown) {
         shouldShoot = true;
-        angle = Math.atan2(mouse.y - player.y, mouse.x - player.x);
+        dirX = mouse.x - player.x;
+        dirY = mouse.y - player.y;
     } else if (joystickRight.active) {
         const dx = joystickRight.x - joystickRight.originX;
         const dy = joystickRight.y - joystickRight.originY;
@@ -813,7 +822,8 @@ function handleShooting() {
         // Only shoot if pulled far enough
         if (distSq > 100) {
             shouldShoot = true;
-            angle = Math.atan2(dy, dx);
+            dirX = dx;
+            dirY = dy;
         }
     }
 
@@ -824,25 +834,33 @@ function handleShooting() {
             const speed = 10;
             sounds.shoot();
 
-            const createProj = (ang) => {
+            let dist = Math.sqrt(dirX * dirX + dirY * dirY);
+            if (dist === 0) { dirX = 1; dirY = 0; dist = 1; }
+            const nx = dirX / dist;
+            const ny = dirY / dist;
+
+            const createProj = (vx, vy) => {
                 return new Projectile(
                     player.x,
                     player.y,
                     5,
                     '#0ff',
                     {
-                        x: Math.cos(ang) * speed,
-                        y: Math.sin(ang) * speed
+                        x: vx * speed,
+                        y: vy * speed
                     }
                 );
             };
 
             if (activePowerups.spread > 0) {
-                projectiles.push(createProj(angle));
-                projectiles.push(createProj(angle - 0.2));
-                projectiles.push(createProj(angle + 0.2));
+                const cosA = 0.98006657784;
+                const sinA = 0.19866933079;
+
+                projectiles.push(createProj(nx, ny));
+                projectiles.push(createProj(nx * cosA + ny * sinA, -nx * sinA + ny * cosA));
+                projectiles.push(createProj(nx * cosA - ny * sinA, nx * sinA + ny * cosA));
             } else {
-                projectiles.push(createProj(angle));
+                projectiles.push(createProj(nx, ny));
             }
 
             lastShotTime = currentTime;
